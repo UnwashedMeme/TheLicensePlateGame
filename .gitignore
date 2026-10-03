@@ -1,0 +1,56 @@
+# =============================================================================
+# .gitignore for The License Plate Game (F# / Fable / Vite / React / pnpm)
+# =============================================================================
+
+# --- Node & pnpm ---
+node_modules/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Vite / Web Bundler Build Outputs ---
+dist/
+dist-ssr/
+*.local
+
+# --- Fable Compiler Artifacts ---
+# Fable compiler cache and generated JavaScript files
+.fable/
+*.fs.js
+*.fs.js.map
+*.fs.d.ts
+
+# --- .NET & F# Compilation ---
+[Bb]in/
+[Oo]bj/
+*.suo
+*.user
+*.userosv
+*.sln.docstates
+.fake/
+.ionide/
+
+# --- Environment & Local Secrets ---
+.env
+.env.local
+.env.*.local
+*.pem
+
+# --- IDEs & System Files ---
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# JetBrains Rider / IntelliJ
+.idea/
+*.sln.iml
+
+# VS Code (preserve shared settings/tasks, ignore user state)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
