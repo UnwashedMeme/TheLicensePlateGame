@@ -64,7 +64,7 @@ TheLicensePlateGame/
 
 ### Phase 1: Toolchain, Project Scaffold & Shared Domain
 
-- [ ] **1.1. Toolchain Setup**
+- [x] **1.1. Toolchain Setup**
   - Verify Node.js and pnpm availability (`node -v` for Node v22/v24 LTS, `pnpm -v` >= 9/10).
   - Initialize local dotnet tool manifest: `dotnet new tool-manifest`.
   - Install local Fable tool: `dotnet tool install fable` (installs latest Fable 5.19+).
