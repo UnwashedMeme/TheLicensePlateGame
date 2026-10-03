@@ -51,12 +51,15 @@ TheLicensePlateGame/
 ├── index.html                  # HTML host shell
 ├── package.json                # Project dependencies (vite, @vitejs/plugin-react, react)
 ├── pnpm-lock.yaml              # Deterministic pnpm dependency lockfile
+├── pnpm-workspace.yaml         # Build permissions configuration (esbuild)
 ├── vite.config.js              # Vite configuration for Fable output
 ├── .config/
 │   └── dotnet-tools.json       # Local dotnet tool manifest (fable)
+├── .gitignore                  # Git exclusions for node, .fable, dist, and .NET
 ├── userexperience.md           # Approved UX specification
 └── implementation-plan.md      # Step-by-step task checklist
 ```
+
 
 ---
 
@@ -90,7 +93,8 @@ TheLicensePlateGame/
 
 - [ ] **2.1. Client F# Project Setup (`src/Client/Client.fsproj`)**
   - Create `Client.fsproj` targeting `net10.0` and reference `src/Shared/Shared.fsproj`.
-  - Add latest NuGet packages: `Fable.Core` (>= 4.3.0), `Fable.Elmish` (>= 4.2.0), `Fable.Elmish.React` (>= 4.0.0), `Feliz` (>= 2.9.0).
+  - Add NuGet packages: `Fable.Core` (>= 4.3.0), `Fable.Elmish` (>= 4.2.0), `Fable.Elmish.React` (>= 4.0.0), `Feliz` (>= 2.9.0), `Fable.Browser.Dom` (>= 2.18.0), `Fable.Browser.IndexedDB` (>= 2.0.0).
+  - Verify live development loop: `dotnet fable watch src/Client -o src/Client --run pnpm exec vite`.
 - [ ] **2.2. Elmish Core Types & In-Memory State (`Types.fs`, `State.fs`)**
   - Define `Model`:
     - `ActiveGame: Game`
