@@ -9,17 +9,36 @@ While driving around, especially on road trips, we see license plates and like t
 
 As a player, I want to be able to start a game on my mobile phone. This records the start date and presents me with the "Game Board": a list of the 50 states, DC, and the Canadian provinces. I'll collectively refer to this as "states" henceforth.
 
-At the top of the Game Board, there is a sticky search box. This should fuzzy match and match state abbreviations (e.g. "la" should find Louisiana).
+### The Game Board
 
-As I recognize a license plate I tap its entry on the Game Board. This should record a log entry of the datetime, the license plate, and (if permissions have been granted) my current location.  I should be allowed to tap on a license plate I've already seen this "game" to record a second observation.
+The main body of the Game Board is a set of buttons, one for each state. These should be big enough that they are easy to tap.
 
-When a state is observed its button should be shaded to show that it has already been found, and show a count badge as a small circle with the number. There should be a toggle on the interface, "hide observed", that removes the buttons for states that have already been observed this game.
+At the top of the Game Board there is search box that should always be visible. This should fuzzy match and match state abbreviations (e.g. "la" should find Louisiana). Hide any button that doesn't match.
 
-Hitting "Start game" again sets the end-date of any existing game, and starts a new one.
+As I recognize a license plate I tap its entry on the Game Board. This should record a log entry of the datetime, the state, and my current location (if permissions have been granted) with no further prompt or confirmation. Tapping doesn't require any further prompt.
+
+I may tap on a state I've already seen this "game" to record a second observation. Each state button should have a small count badge in the upper right corner of the button with the number of observations in the current game.
+
+Long pressing on a state brings up a popup of the observation times this game, each with an X button that causes that entry to be deleted.
+
+A small hamburger menu at the top right of the screen has a menu that contains:
+
+- Hide/Show observed toggle. When "Hide Observed" is selected it removes the buttons for states that have been observed this game.
+- "New Game" button; clicking this confirms before Continuing.
+- History button
+
+### New Game
+
+Hitting "New Game" allows me to start a fresh game that shows every state as unobserved.  This should not clear or delete any data, just create a DB entry with the new datetime that is used to filter observations.
+
+This should have a confirmation prompt.
+
+
+## History View
 
 I want a mode where I can see stats about all the observations for the time periods: 1. All time 2. Last 1y 3. This game.  A toggle set at the top of the screen would be nice.
 
-When I select a given time period it should show the list of buttons with color gradient of "most collected" to "least collected". 
+When I select a given time period it should show the list of buttons with color gradient of "most collected" to "least collected".
 
 
 ### Future Ideas
