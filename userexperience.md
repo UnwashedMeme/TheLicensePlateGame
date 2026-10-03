@@ -1,62 +1,89 @@
 # The License Plate Game
 
+## Broad Idea
 
-## Broad idea
-
-While driving around, especially on road trips, we see license plates and like to keep the list of the ones we've seen. "Collect them all".
+While driving around, especially on road trips, we see license plates and like to keep a list of the ones we've seen: "Collect them all".
 
 ## Game Design
 
-As a player, I want to be able to start a game on my mobile phone. This records the start date and presents me with the "Game Board": a list of the 50 states, DC, and the Canadian provinces. I'll collectively refer to this as "states" henceforth.
+### First Launch & Lifecycle
+
+- **Instant Start**: On initial launch,
+  1. Prompts for GPS permission with an explanation of use.
+  2. Drops straight into the Game Board with an automatically created and named game (e.g., `Trip - Oct 3, 2026`) so the player can immediately begin tapping with zero friction or setup screens.
+- **Active Game Header**: The active game's name is displayed at the top of the screen in the app header alongside a progress counter (e.g., `18 / 61`, dynamic to the selected tab). Tapping the game name (or selecting "Edit Game Info" from the hamburger menu) opens a modal where the player can edit the game's **Name** and **Notes**.
+- **Game Metadata**:
+  - Name (e.g., "2027 Summer roadtrip")
+  - Notes
+  - Start Date (recorded automatically at creation)
+  - End Date (recorded automatically when ended)
 
 ### The Game Board
 
-The main body of the Game Board is a set of buttons, one for each state. These should be big enough that they are easy to tap.
+- **Jurisdiction Tabs**: Toggle pills/tabs at the top allow filtering the board between:
+  - **US States** (50 US states + DC)
+  - **Canadian Provinces** (10 Canadian provinces)
+  - **All** (all 61 jurisdictions)
+- **Search Box**:
+  - Always visible near the top of the Game Board.
+  - Supports fuzzy matching on full jurisdiction names as well as 2-letter postal abbreviations (e.g., typing "la" matches Louisiana).
+  - Hides buttons that do not match the query.
+  - **Post-Tap Behavior**: Tapping a filtered jurisdiction button immediately logs the observation, auto-clears the search input, and dismisses (blurs) the mobile keyboard so the full board is immediately visible for the next sighting.
+- **State Buttons**:
+  - Sized generously in a touch-friendly mobile grid.
+  - **Button Layout**:
+    - **Top-left corner**: Two-letter postal abbreviation in small text (e.g., `TX`, `CA`, `ON`).
+    - **Top-right corner**: Small count badge showing the number of observations recorded in the current game.
+    - **Lower two-thirds**: State/province name as the main centered text.
+  - **Visual Styling**:
+    - Unobserved states (count = 0) display standard neutral button styling.
+    - Observed states (count >= 1) display a distinct active accent/highlight background and border so collected states stand out clearly at a glance.
 
-At the top of the Game Board there is search box that should always be visible. This should fuzzy match and match state abbreviations (e.g. "la" should find Louisiana). Hide any button that doesn't match.
+### Observation Logging & Tap Handling
 
-As I recognize a license plate I tap its entry on the Game Board. This should record a log entry of the datetime, the state, and my current location (if permissions have been granted) with no further prompt or confirmation. Tapping doesn't require any further prompt.
+- **Instant Capture**: Tapping a state button immediately increments the count and logs an entry containing the jurisdiction, timestamp, and GPS coordinates (if permission has been granted). Tapping is instant and never blocked by prompts or network latency.
+- **Location Permissions & Asynchronous GPS**:
+  - Location permission is requested on first launch accompanied by a brief explanation banner.
+  - GPS resolution runs asynchronously in the background so button taps record instantaneously even if GPS lock is delayed, denied, or offline.
+- **Accidental Taps & Deletion**:
+  - No floating toast/snackbar banner is shown on tap to keep the UI clean and unobtrusive.
+  - If a button was tapped by mistake, the player long-presses the state button to open the observation list and deletes the erroneous entry.
 
-I may tap on a state I've already seen this "game" to record a second observation. Each state button should have a small count badge in the upper right corner of the button with the number of observations in the current game.
+### Long-Press Observation Details
 
-Long pressing on a state brings up a popup of the observation times this game, each with an X button that causes that entry to be deleted.
+- **Empty State**: Long-pressing a button with 0 observations does nothing.
+- **Observation Popup**: Long-pressing an observed state (count >= 1) opens a popup listing each observation recorded during the current game.
+  - Each entry displays its date and time timestamp (e.g., `Oct 3, 2:45 PM`).
+  - Each entry has an **X** button to delete that specific observation.
 
-A small hamburger menu at the top right of the screen has a menu that contains:
+### Header & Menu Actions
 
-- Hide/Show observed toggle. When "Hide Observed" is selected it removes the buttons for states that have been observed this game.
-- "New Game" button; clicking this confirms before Continuing.
-- History button
+A hamburger menu at the top right of the screen contains:
+- **Hide/Show Observed Toggle**: Toggles visibility of states that have already been collected in the current game, allowing players to focus solely on uncollected plates.
+- **Edit Game Info**: Opens a modal to review and edit the active game's Name and Notes.
+- **New Game**:
+  - Prompts with a confirmation dialog to prevent accidental resets.
+  - Confirmed action automatically marks the active game as ended (setting `End Date` to now).
+  - Presents fields to enter the new game's Name (prefilled with a default date-based title) and optional Notes.
+  - Resets the Game Board to a clean slate start without deleting historical observation logs.
 
-### New Game
+---
 
-Hitting "New Game" allows me to start a fresh game that shows every state as unobserved.  This should not clear or delete any data, just create a DB entry with the new datetime that is used to filter observations.
+## Future Ideas
 
-This should have a confirmation prompt.
+These features are planned for future phases and are not part of the initial MVP:
 
+- **History View**: Mode displaying aggregate stats across selectable time periods (All Time, Last 1 Year, This Game) with buttons styled in a color gradient from "most collected" to "least collected".
+- **Past Game History View**: Browse, inspect, and review details and statistics from previous game sessions.
+- **Map Mode**: Interactive map visualization of recorded GPS coordinates, filterable by time ranges and specific jurisdictions (e.g., "Show where I was when I collected Vermont over the last year").
+- **Multiplayer**: Share collections with friends or compete in real-time road trip challenges.
+- **Server Sync**: Cloud synchronization and backup across multiple devices.
 
-## History View
+---
 
-I want a mode where I can see stats about all the observations for the time periods: 1. All time 2. Last 1y 3. This game.  A toggle set at the top of the screen would be nice.
+## Tech Notes
 
-When I select a given time period it should show the list of buttons with color gradient of "most collected" to "least collected".
-
-
-### Future Ideas
-
-These are other ideas we want to consider, but not part of the initial implementation.
-
-- Multiplayer - share my collections with friends or compete to collect
-- Map mode to show my recorded locations. This should also be filteratble on the same set of time ranges, as well as set of states. E.g. "Show me where I was for the last 1y when I collected 'Vermont'".
-- Past Game History View - browse and review previous game sessions
-- Server sync - cloud synchronization and online backup across devices
-
-
-
-
-## Tech notes
-
-- **Platform**: Progressive Web App (PWA) optimized for mobile, installable to the home screen, and fully operational offline.
-- **Jurisdiction Scope**: 64 total entries — 50 US states + DC, 10 Canadian provinces, and 3 Canadian territories.
-- **Observation Capture**: Instant single-tap logging capturing jurisdiction, timestamp, and GPS location (if permitted) without requiring text entry.
-- **Safety & Lifecycle**: Quick undo option for accidental taps, and a confirmation prompt before ending an active game to start a new one.
-- **Auth & Export**: Current version has no accounts/authentication and no data export; all data is stored locally on the device (with future server sync planned).
+- **Platform**: Progressive Web App (PWA) optimized for mobile devices, installable to the home screen, and fully operational offline.
+- **Jurisdiction Scope**: 61 total jurisdictions — 50 US states, District of Columbia (DC), and 10 Canadian provinces.
+- **Observation Storage**: Local storage via IndexedDB; observation records capture jurisdiction ID, game ID, ISO timestamp, and latitude/longitude coordinates (when available).
+- **Offline First**: All core game features (tapping, searching, filtering, editing, and game resets) work seamlessly without an active internet connection.
