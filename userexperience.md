@@ -79,6 +79,7 @@ These features are planned for future phases and are not part of the initial MVP
 - **Multiplayer**: Share collections with friends or compete in real-time road trip challenges.
 - **Server Sync**: Cloud synchronization and backup across multiple devices.
 - **Accessibility Support**: Work with Screen reader, haptic feedback
+- different color themes
 
 ---
 
