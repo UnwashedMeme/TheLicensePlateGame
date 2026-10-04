@@ -84,13 +84,9 @@ module View =
                                     prop.onClick (fun _ ->
                                         let currentName = model.ActiveGame.Name
                                         let currentNotes = defaultArg model.ActiveGame.Notes ""
-                                        dispatch (OpenModal (EditGameInfo (currentName, currentNotes)))
-                                    )
+                                        dispatch (OpenModal(EditGameInfo(currentName, currentNotes))))
                                     prop.children [
-                                        Html.span [
-                                            prop.className "game-title"
-                                            prop.text model.ActiveGame.Name
-                                        ]
+                                        Html.span [ prop.className "game-title"; prop.text model.ActiveGame.Name ]
                                         Icons.edit ()
                                     ]
                                 ]
@@ -110,9 +106,7 @@ module View =
                                     prop.className "icon-button"
                                     prop.ariaLabel "Open navigation menu"
                                     prop.onClick (fun _ -> dispatch (OpenModal HamburgerMenu))
-                                    prop.children [
-                                        Icons.hamburger ()
-                                    ]
+                                    prop.children [ Icons.hamburger () ]
                                 ]
                             ]
                         ]
@@ -143,10 +137,7 @@ module View =
                             prop.onClick (fun _ -> dispatch (TabSelected US))
                             prop.children [
                                 Html.span "US States"
-                                Html.span [
-                                    prop.className "scope-pill-count"
-                                    prop.text "51"
-                                ]
+                                Html.span [ prop.className "scope-pill-count"; prop.text "51" ]
                             ]
                         ]
 
@@ -159,10 +150,7 @@ module View =
                             prop.onClick (fun _ -> dispatch (TabSelected Canada))
                             prop.children [
                                 Html.span "Canadian Provinces"
-                                Html.span [
-                                    prop.className "scope-pill-count"
-                                    prop.text "10"
-                                ]
+                                Html.span [ prop.className "scope-pill-count"; prop.text "10" ]
                             ]
                         ]
 
@@ -175,10 +163,7 @@ module View =
                             prop.onClick (fun _ -> dispatch (TabSelected All))
                             prop.children [
                                 Html.span "All"
-                                Html.span [
-                                    prop.className "scope-pill-count"
-                                    prop.text "61"
-                                ]
+                                Html.span [ prop.className "scope-pill-count"; prop.text "61" ]
                             ]
                         ]
                     ]
@@ -202,9 +187,7 @@ module View =
                                 prop.className "search-clear-button"
                                 prop.ariaLabel "Clear search"
                                 prop.onClick (fun _ -> dispatch ClearSearch)
-                                prop.children [
-                                    Icons.close ()
-                                ]
+                                prop.children [ Icons.close () ]
                             ]
                     ]
                 ]
@@ -229,10 +212,7 @@ module View =
             Html.div [
                 prop.className "empty-state"
                 prop.children [
-                    Html.p [
-                        prop.className "empty-state-title"
-                        prop.text "No jurisdictions found"
-                    ]
+                    Html.p [ prop.className "empty-state-title"; prop.text "No jurisdictions found" ]
                     Html.p [
                         prop.text (
                             if model.HideObserved then
@@ -253,38 +233,28 @@ module View =
 
                         Html.button [
                             prop.key j.Id
-                            prop.className (if isObserved then "plate-card is-observed" else "plate-card")
-                            prop.ariaLabel (
-                                sprintf "%s (%s), %d observed" j.Name j.Code count
+                            prop.className (
+                                if isObserved then
+                                    "plate-card is-observed"
+                                else
+                                    "plate-card"
                             )
-                            prop.onClick (fun _ ->
-                                dispatch (PlateTapped j.Id)
-                            )
+                            prop.ariaLabel (sprintf "%s (%s), %d observed" j.Name j.Code count)
+                            prop.onClick (fun _ -> dispatch (PlateTapped j.Id))
                             prop.children [
                                 // Top header: Postal code on left, Count badge on right
                                 Html.div [
                                     prop.className "plate-card-header"
                                     prop.children [
-                                        Html.span [
-                                            prop.className "plate-card-code"
-                                            prop.text j.Code
-                                        ]
-                                        Html.span [
-                                            prop.className "plate-card-badge"
-                                            prop.text (string count)
-                                        ]
+                                        Html.span [ prop.className "plate-card-code"; prop.text j.Code ]
+                                        Html.span [ prop.className "plate-card-badge"; prop.text (string count) ]
                                     ]
                                 ]
 
                                 // Centered name in lower two-thirds
                                 Html.div [
                                     prop.className "plate-card-body"
-                                    prop.children [
-                                        Html.span [
-                                            prop.className "plate-card-name"
-                                            prop.text j.Name
-                                        ]
-                                    ]
+                                    prop.children [ Html.span [ prop.className "plate-card-name"; prop.text j.Name ] ]
                                 ]
                             ]
                         ]
@@ -309,17 +279,12 @@ module View =
                         Html.div [
                             prop.className "modal-header"
                             prop.children [
-                                Html.h2 [
-                                    prop.className "modal-title"
-                                    prop.text "Menu"
-                                ]
+                                Html.h2 [ prop.className "modal-title"; prop.text "Menu" ]
                                 Html.button [
                                     prop.className "icon-button"
                                     prop.ariaLabel "Close menu"
                                     prop.onClick (fun _ -> dispatch CloseModal)
-                                    prop.children [
-                                        Icons.close ()
-                                    ]
+                                    prop.children [ Icons.close () ]
                                 ]
                             ]
                         ]
@@ -332,8 +297,7 @@ module View =
                                     prop.className "drawer-item"
                                     prop.onClick (fun _ ->
                                         dispatch ToggleHideObserved
-                                        dispatch CloseModal
-                                    )
+                                        dispatch CloseModal)
                                     prop.text (
                                         if model.HideObserved then
                                             "Show Observed States"
@@ -348,8 +312,7 @@ module View =
                                     prop.onClick (fun _ ->
                                         let currentName = model.ActiveGame.Name
                                         let currentNotes = defaultArg model.ActiveGame.Notes ""
-                                        dispatch (OpenModal (EditGameInfo (currentName, currentNotes)))
-                                    )
+                                        dispatch (OpenModal(EditGameInfo(currentName, currentNotes))))
                                     prop.text "Edit Game Info"
                                 ]
 
@@ -357,9 +320,9 @@ module View =
                                 Html.button [
                                     prop.className "drawer-item"
                                     prop.onClick (fun _ ->
-                                        let defaultNewName = sprintf "Trip - %s" (DateTimeOffset.UtcNow.ToString("MMM d, yyyy"))
-                                        dispatch (OpenModal (NewGameConfirm (defaultNewName, "")))
-                                    )
+                                        let defaultNewName =
+                                            sprintf "Trip - %s" (DateTimeOffset.UtcNow.ToString("MMM d, yyyy"))
+                                        dispatch (OpenModal(NewGameConfirm(defaultNewName, ""))))
                                     prop.text "New Game"
                                 ]
                             ]
@@ -471,7 +434,8 @@ module View =
                             prop.children [
                                 Html.p [
                                     prop.className "form-label"
-                                    prop.text "Starting a new game concludes your active session. All historical observations are preserved."
+                                    prop.text
+                                        "Starting a new game concludes your active session. All historical observations are preserved."
                                 ]
                                 Html.div [
                                     prop.className "form-group"
@@ -561,7 +525,9 @@ module View =
                                                 prop.children [
                                                     Html.span [
                                                         prop.className "observation-timestamp"
-                                                        prop.text (obs.Timestamp.ToLocalTime().ToString("MMM d, h:mm tt"))
+                                                        prop.text (
+                                                            obs.Timestamp.ToLocalTime().ToString("MMM d, h:mm tt")
+                                                        )
                                                     ]
                                                     Html.button [
                                                         prop.className "observation-delete-button"
@@ -593,12 +559,9 @@ module View =
 
     let private modalsView (model: Model) (dispatch: Msg -> unit) =
         match model.ActiveModal with
-        | Some (EditGameInfo (name, notes)) ->
-            editGameModal name notes dispatch
-        | Some (NewGameConfirm (name, notes)) ->
-            newGameModal name notes dispatch
-        | Some (ObservationDetails jId) ->
-            observationDetailsModal jId model dispatch
+        | Some(EditGameInfo(name, notes)) -> editGameModal name notes dispatch
+        | Some(NewGameConfirm(name, notes)) -> newGameModal name notes dispatch
+        | Some(ObservationDetails jId) -> observationDetailsModal jId model dispatch
         | _ -> Html.none
 
     // =========================================================================
@@ -612,10 +575,7 @@ module View =
                 headerView model dispatch
                 Html.main [
                     prop.className "main-content"
-                    prop.children [
-                        controlsView model dispatch
-                        plateGridView model dispatch
-                    ]
+                    prop.children [ controlsView model dispatch; plateGridView model dispatch ]
                 ]
                 drawerView model dispatch
                 modalsView model dispatch

@@ -13,10 +13,11 @@ module State =
             if not (isNull activeEl) then
                 let htmlEl = activeEl :?> Browser.Types.HTMLElement
                 if not (isNull htmlEl) then
-                    htmlEl.blur()
-        with _ -> ()
+                    htmlEl.blur ()
+        with _ ->
+            ()
 
-    let private blurActiveInputCmd : Cmd<Msg> =
+    let private blurActiveInputCmd: Cmd<Msg> =
         Cmd.ofEffect (fun _ -> blurActiveElement ())
 
     /// Initialize the default in-memory game state.
@@ -63,72 +64,104 @@ module State =
 
             nextModel, blurActiveInputCmd
 
-        | SearchChanged query ->
-            { model with SearchQuery = query }, Cmd.none
+        | SearchChanged query -> { model with SearchQuery = query }, Cmd.none
 
-        | ClearSearch ->
-            { model with SearchQuery = "" }, Cmd.none
+        | ClearSearch -> { model with SearchQuery = "" }, Cmd.none
 
-        | TabSelected scope ->
-            { model with SelectedTab = scope }, Cmd.none
+        | TabSelected scope -> { model with SelectedTab = scope }, Cmd.none
 
         | ToggleHideObserved ->
-            { model with HideObserved = not model.HideObserved }, Cmd.none
+            {
+                model with
+                    HideObserved = not model.HideObserved
+            },
+            Cmd.none
 
-        | OpenModal modal ->
-            { model with ActiveModal = Some modal }, Cmd.none
+        | OpenModal modal -> { model with ActiveModal = Some modal }, Cmd.none
 
-        | CloseModal ->
-            { model with ActiveModal = None }, Cmd.none
+        | CloseModal -> { model with ActiveModal = None }, Cmd.none
 
         | EditGameNameChanged newName ->
             match model.ActiveModal with
-            | Some (EditGameInfo (_, notes)) ->
-                { model with ActiveModal = Some (EditGameInfo (newName, notes)) }, Cmd.none
+            | Some(EditGameInfo(_, notes)) ->
+                {
+                    model with
+                        ActiveModal = Some(EditGameInfo(newName, notes))
+                },
+                Cmd.none
             | _ -> model, Cmd.none
 
         | EditGameNotesChanged newNotes ->
             match model.ActiveModal with
-            | Some (EditGameInfo (name, _)) ->
-                { model with ActiveModal = Some (EditGameInfo (name, newNotes)) }, Cmd.none
+            | Some(EditGameInfo(name, _)) ->
+                {
+                    model with
+                        ActiveModal = Some(EditGameInfo(name, newNotes))
+                },
+                Cmd.none
             | _ -> model, Cmd.none
 
         | SaveGameInfo ->
             match model.ActiveModal with
-            | Some (EditGameInfo (name, notes)) ->
+            | Some(EditGameInfo(name, notes)) ->
                 let cleanedName =
-                    if String.IsNullOrWhiteSpace name then model.ActiveGame.Name else name.Trim()
+                    if String.IsNullOrWhiteSpace name then
+                        model.ActiveGame.Name
+                    else
+                        name.Trim()
                 let cleanedNotes =
-                    if String.IsNullOrWhiteSpace notes then None else Some (notes.Trim())
+                    if String.IsNullOrWhiteSpace notes then
+                        None
+                    else
+                        Some(notes.Trim())
                 let updatedGame = {
                     model.ActiveGame with
                         Name = cleanedName
                         Notes = cleanedNotes
                 }
-                { model with ActiveGame = updatedGame; ActiveModal = None }, Cmd.none
+                {
+                    model with
+                        ActiveGame = updatedGame
+                        ActiveModal = None
+                },
+                Cmd.none
             | _ -> model, Cmd.none
 
         | NewGameNameChanged newName ->
             match model.ActiveModal with
-            | Some (NewGameConfirm (_, notes)) ->
-                { model with ActiveModal = Some (NewGameConfirm (newName, notes)) }, Cmd.none
+            | Some(NewGameConfirm(_, notes)) ->
+                {
+                    model with
+                        ActiveModal = Some(NewGameConfirm(newName, notes))
+                },
+                Cmd.none
             | _ -> model, Cmd.none
 
         | NewGameNotesChanged newNotes ->
             match model.ActiveModal with
-            | Some (NewGameConfirm (name, _)) ->
-                { model with ActiveModal = Some (NewGameConfirm (name, newNotes)) }, Cmd.none
+            | Some(NewGameConfirm(name, _)) ->
+                {
+                    model with
+                        ActiveModal = Some(NewGameConfirm(name, newNotes))
+                },
+                Cmd.none
             | _ -> model, Cmd.none
 
         | ConfirmNewGame ->
             match model.ActiveModal with
-            | Some (NewGameConfirm (name, notes)) ->
+            | Some(NewGameConfirm(name, notes)) ->
                 let now = DateTimeOffset.UtcNow
                 let fallbackName = sprintf "Trip - %s" (now.ToString("MMM d, yyyy"))
                 let newGameTitle =
-                    if String.IsNullOrWhiteSpace name then fallbackName else name.Trim()
+                    if String.IsNullOrWhiteSpace name then
+                        fallbackName
+                    else
+                        name.Trim()
                 let cleanedNotes =
-                    if String.IsNullOrWhiteSpace notes then None else Some (notes.Trim())
+                    if String.IsNullOrWhiteSpace notes then
+                        None
+                    else
+                        Some(notes.Trim())
 
                 let newGame: Game = {
                     Id = Guid.NewGuid()
@@ -149,19 +182,20 @@ module State =
             | _ -> model, Cmd.none
 
         | DeleteObservation id ->
-            let updatedObservations =
-                model.Observations |> List.filter (fun o -> o.Id <> id)
+            let updatedObservations = model.Observations |> List.filter (fun o -> o.Id <> id)
 
             // If an observation details modal is currently open, check if any entries remain
             let nextModal =
                 match model.ActiveModal with
-                | Some (ObservationDetails jId) ->
+                | Some(ObservationDetails jId) ->
                     let hasRemaining =
                         updatedObservations |> List.exists (fun o -> o.JurisdictionId = jId)
-                    if hasRemaining then Some (ObservationDetails jId) else None
+                    if hasRemaining then Some(ObservationDetails jId) else None
                 | other -> other
 
-            { model with
-                Observations = updatedObservations
-                ActiveModal = nextModal
-            }, Cmd.none
+            {
+                model with
+                    Observations = updatedObservations
+                    ActiveModal = nextModal
+            },
+            Cmd.none

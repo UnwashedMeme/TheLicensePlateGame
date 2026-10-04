@@ -7,14 +7,20 @@ module Search =
 
     /// Checks if needle characters appear in haystack in the same sequential order.
     let private isSubsequence (needle: string) (haystack: string) : bool =
-        if String.IsNullOrEmpty needle then true
-        elif needle.Length > haystack.Length then false
+        if String.IsNullOrEmpty needle then
+            true
+        elif needle.Length > haystack.Length then
+            false
         else
             let rec loop nIdx hIdx =
-                if nIdx = needle.Length then true
-                elif hIdx = haystack.Length then false
-                elif needle.[nIdx] = haystack.[hIdx] then loop (nIdx + 1) (hIdx + 1)
-                else loop nIdx (hIdx + 1)
+                if nIdx = needle.Length then
+                    true
+                elif hIdx = haystack.Length then
+                    false
+                elif needle.[nIdx] = haystack.[hIdx] then
+                    loop (nIdx + 1) (hIdx + 1)
+                else
+                    loop nIdx (hIdx + 1)
             loop 0 0
 
     /// Returns the acronym / initials of words in a name (e.g. "New York" -> "ny", "North Carolina" -> "nc").
@@ -42,8 +48,10 @@ module Search =
             elif name.Contains cleanQuery then
                 true
             // 4. Any individual word in the name starts with query
-            elif j.Name.Split([| ' '; '-'; '/' |], StringSplitOptions.RemoveEmptyEntries)
-                 |> Array.exists (fun word -> word.ToLowerInvariant().StartsWith cleanQuery) then
+            elif
+                j.Name.Split([| ' '; '-'; '/' |], StringSplitOptions.RemoveEmptyEntries)
+                |> Array.exists (fun word -> word.ToLowerInvariant().StartsWith cleanQuery)
+            then
                 true
             // 5. Fuzzy subsequence match for queries with 3 or more characters
             elif cleanQuery.Length >= 3 && isSubsequence cleanQuery name then

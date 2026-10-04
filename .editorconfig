@@ -1,0 +1,7 @@
+insert_final_newline = true
+
+[*.{fs,fsx}]
+fsharp_blank_lines_around_nested_multiline_expressions = false
+fsharp_multiline_bracket_style = stroustrup
+fsharp_newline_before_multiline_computation_expression = false
+fsharp_experimental_elmish = true
