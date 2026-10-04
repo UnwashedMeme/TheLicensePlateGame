@@ -4,9 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "dotnet fable watch src/Client -o src/Client --run pnpm exec vite",
+    "build": "dotnet build && dotnet fable src/Client -o src/Client && vite build",
+    "preview": "vite preview",
+    "test": "echo \"No test suite configured yet. (Will be added in a later phase)\" && exit 0",
+    "clean": "rm -rf dist src/*/bin src/*/obj src/*/fable_modules src/*/*.fs.js src/*/*.fs.js.map"
   },
   "dependencies": {
     "react": "^19.0.0",

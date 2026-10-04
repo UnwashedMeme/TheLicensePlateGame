@@ -138,14 +138,27 @@ echo "========================="
 
 ---
 
-## 6. Running the Development Server
+## 6. Developer Workflow Commands
 
-Once dependencies are installed, you will start development with:
+Once dependencies are installed, use the following `pnpm` scripts:
 
 ```bash
-# Install dependencies using pnpm (creates hard links to global store)
+# Install dependencies using pnpm
 pnpm install
 
-# Start development server with live reload (Vite + Fable)
+# Start development server with live reload (Fable watch + Vite dev server)
 pnpm dev
+
+# Build the complete production bundle (dotnet build + Fable compile + Vite bundle into dist/)
+pnpm build
+
+# Preview the production bundle locally
+pnpm preview
+
+# Run tests (placeholder until test project is scaffolded)
+pnpm test
+
+# Clean build artifacts (dist, bin, obj, fable_modules, and generated .fs.js files)
+pnpm clean
 ```
+

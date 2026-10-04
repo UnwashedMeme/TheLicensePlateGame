@@ -72,6 +72,7 @@ TheLicensePlateGame/
   - Initialize local dotnet tool manifest: `dotnet new tool-manifest`.
   - Install local Fable tool: `dotnet tool install fable` (installs latest Fable 5.19+).
   - Initialize `package.json` and install modern tooling via pnpm: `vite` (^6.0+), `@vitejs/plugin-react` (^4.3+), `react` (^19.0+), `react-dom` (^19.0+).
+  - Configure `package.json` workflow scripts: `dev`, `build`, `preview`, `test`, and `clean`.
   - Create `vite.config.js` pointing to compiled client entrypoint.
 - [x] **1.2. Shared Domain Library (`src/Shared/`)**
   - Create `Shared.fsproj` targeting `net10.0`.
