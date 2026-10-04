@@ -18,6 +18,7 @@ dist-ssr/
 # --- Fable Compiler Artifacts ---
 # Fable compiler cache and generated JavaScript files
 .fable/
+fable_modules/
 *.fs.js
 *.fs.js.map
 *.fs.d.ts

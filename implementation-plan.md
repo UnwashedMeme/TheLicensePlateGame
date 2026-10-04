@@ -73,10 +73,10 @@ TheLicensePlateGame/
   - Install local Fable tool: `dotnet tool install fable` (installs latest Fable 5.19+).
   - Initialize `package.json` and install modern tooling via pnpm: `vite` (^6.0+), `@vitejs/plugin-react` (^4.3+), `react` (^19.0+), `react-dom` (^19.0+).
   - Create `vite.config.js` pointing to compiled client entrypoint.
-- [ ] **1.2. Shared Domain Library (`src/Shared/`)**
+- [x] **1.2. Shared Domain Library (`src/Shared/`)**
   - Create `Shared.fsproj` targeting `net10.0`.
   - Implement `Domain.fs`:
-    - `Jurisdiction` record: `{ Id: string; Code: string; Name: string; Country: string }`.
+    - `Jurisdiction` record: `{ Id: string; Code: string; Name: string; Tags: string list }`.
     - Complete dataset of 61 jurisdictions (50 US States, DC, 10 Canadian Provinces).
     - `Game` record: `{ Id: Guid; Name: string; Notes: string option; StartDate: DateTimeOffset; EndDate: DateTimeOffset option; IsActive: bool }`.
     - `Observation` record: `{ Id: Guid; GameId: Guid; JurisdictionId: string; Timestamp: DateTimeOffset; Latitude: float option; Longitude: float option }`.
