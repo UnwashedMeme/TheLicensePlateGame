@@ -122,6 +122,9 @@ module Jurisdictions =
     /// Check whether a jurisdiction contains a specific tag.
     let hasTag (tag: string) (j: Jurisdiction) : bool = List.contains tag j.Tags
 
+    let hasAnyTag (tags: string list) (j: Jurisdiction) : bool =
+        List.exists (fun tag -> hasTag tag j) tags
+
     /// All 61 supported jurisdictions with comprehensive regional tags.
     let all: Jurisdiction list = [
         // --- US States & DC (51) ---

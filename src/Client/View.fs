@@ -83,7 +83,9 @@ module View =
                                     prop.ariaLabel "Edit game title and notes"
                                     prop.onClick (fun _ ->
                                         let currentName = model.ActiveGame.Name
+
                                         let currentNotes = defaultArg model.ActiveGame.Notes ""
+
                                         dispatch (OpenModal(EditGameInfo(currentName, currentNotes))))
                                     prop.children [
                                         Html.span [ prop.className "game-title"; prop.text model.ActiveGame.Name ]
@@ -100,7 +102,7 @@ module View =
                                 Html.div [
                                     prop.className "progress-counter"
                                     prop.ariaLabel "Collection progress"
-                                    prop.text (Model.progressText model.SelectedTab model)
+                                    prop.text (Model.progressText model.Scopes model)
                                 ]
                                 Html.button [
                                     prop.className "icon-button"
@@ -123,50 +125,32 @@ module View =
         Html.section [
             prop.className "controls-section"
             prop.children [
-                // Scope Filter Tabs
+                // Scope Filter Toggles
                 Html.div [
                     prop.className "scope-tabs"
-                    prop.role "tablist"
-                    prop.children [
-                        // US Tab
-                        Html.button [
-                            let isActive = model.SelectedTab = US
-                            prop.className (if isActive then "scope-pill is-active" else "scope-pill")
-                            prop.role "tab"
-                            prop.ariaSelected isActive
-                            prop.onClick (fun _ -> dispatch (TabSelected US))
-                            prop.children [
-                                Html.span "US States"
-                                Html.span [ prop.className "scope-pill-count"; prop.text "51" ]
-                            ]
-                        ]
+                    prop.role "group"
+                    prop.ariaLabel "Jurisdiction filters"
+                    prop.children (
+                        model.Scopes
+                        |> List.map (fun scope ->
 
-                        // Canadian Provinces Tab
-                        Html.button [
-                            let isActive = model.SelectedTab = Canada
-                            prop.className (if isActive then "scope-pill is-active" else "scope-pill")
-                            prop.role "tab"
-                            prop.ariaSelected isActive
-                            prop.onClick (fun _ -> dispatch (TabSelected Canada))
-                            prop.children [
-                                Html.span "Canadian Provinces"
-                                Html.span [ prop.className "scope-pill-count"; prop.text "10" ]
-                            ]
-                        ]
+                            Html.button [
+                                let isActive = scope.Active
+                                prop.type' "button"
 
-                        // All Tab
-                        Html.button [
-                            let isActive = model.SelectedTab = All
-                            prop.className (if isActive then "scope-pill is-active" else "scope-pill")
-                            prop.role "tab"
-                            prop.ariaSelected isActive
-                            prop.onClick (fun _ -> dispatch (TabSelected All))
-                            prop.children [
-                                Html.span "All"
-                                Html.span [ prop.className "scope-pill-count"; prop.text "61" ]
+                                prop.className (if isActive then "scope-pill is-active" else "scope-pill")
+
+                                prop.ariaPressed isActive
+                                prop.onClick (fun _ -> dispatch (ToggleScope scope))
+
+                                prop.children [
+                                    Html.span scope.Tag
+                                    Html.span [ prop.className "scope-pill-count"; prop.text (string scope.Count) ]
+                                ]
                             ]
-                        ]
-                    ]
+
+                        )
+                    )
                 ]
 
                 // Search Bar
@@ -199,7 +183,7 @@ module View =
     // =========================================================================
 
     let private plateGridView (model: Model) (dispatch: Msg -> unit) =
-        let scopedJurisdictions = Model.jurisdictionsForScope model.SelectedTab
+        let scopedJurisdictions = Model.jurisdictionsForScopes model.Scopes
         let searchFiltered = Search.filter model.SearchQuery scopedJurisdictions
 
         let displayedJurisdictions =
@@ -216,7 +200,7 @@ module View =
                     Html.p [
                         prop.text (
                             if model.HideObserved then
-                                "All jurisdictions in this view are collected! Switch tabs or toggle 'Show Observed'."
+                                "All jurisdictions in this view are collected! Switch filters or toggle 'Show Observed'."
                             else
                                 "No state or province matched your search query."
                         )
@@ -312,6 +296,7 @@ module View =
                                     prop.onClick (fun _ ->
                                         let currentName = model.ActiveGame.Name
                                         let currentNotes = defaultArg model.ActiveGame.Notes ""
+
                                         dispatch (OpenModal(EditGameInfo(currentName, currentNotes))))
                                     prop.text "Edit Game Info"
                                 ]
@@ -322,6 +307,7 @@ module View =
                                     prop.onClick (fun _ ->
                                         let defaultNewName =
                                             sprintf "Trip - %s" (DateTimeOffset.UtcNow.ToString("MMM d, yyyy"))
+
                                         dispatch (OpenModal(NewGameConfirm(defaultNewName, ""))))
                                     prop.text "New Game"
                                 ]
@@ -485,6 +471,7 @@ module View =
 
     let private observationDetailsModal (jurisdictionId: string) (model: Model) (dispatch: Msg -> unit) =
         let jurisdictionOpt = Jurisdictions.tryFind jurisdictionId
+
         let title =
             match jurisdictionOpt with
             | Some j -> sprintf "%s (%s)" j.Name j.Code

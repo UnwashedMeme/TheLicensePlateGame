@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Scopes.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Search.fs" />
     <Compile Include="State.fs" />
