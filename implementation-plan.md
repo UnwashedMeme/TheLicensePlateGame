@@ -78,7 +78,8 @@ TheLicensePlateGame/
   - Implement `Domain.fs`:
     - `Jurisdiction` record: `{ Id: string; Code: string; Name: string; Tags: string list }`.
     - Complete dataset of 61 jurisdictions (50 US States, DC, 10 Canadian Provinces).
-    - `Game` record: `{ Id: Guid; Name: string; Notes: string option; StartDate: DateTimeOffset; EndDate: DateTimeOffset option; IsActive: bool }`.
+    - `GameStatus` union (`InProgress | Completed of EndDate: DateTimeOffset`).
+    - `Game` record: `{ Id: Guid; Name: string; Notes: string option; StartDate: DateTimeOffset; Status: GameStatus }`.
     - `Observation` record: `{ Id: Guid; GameId: Guid; JurisdictionId: string; Timestamp: DateTimeOffset; Latitude: float option; Longitude: float option }`.
   - Implement `Events.fs`:
     - `GameEvent` union type (`PlateObserved of Observation`, `ObservationDeleted of Guid`, `GameStarted of Game`, `GameUpdated of Game`, `GameEnded of Guid`).

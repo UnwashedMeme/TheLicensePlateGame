@@ -10,15 +10,36 @@ type Jurisdiction = {
     Tags: string list
 }
 
+/// Represents the lifecycle status of a game session.
+type GameStatus =
+    | InProgress
+    | Completed of EndDate: DateTimeOffset
+
 /// Represents an active or completed game session.
 type Game = {
     Id: Guid
     Name: string
     Notes: string option
     StartDate: DateTimeOffset
-    EndDate: DateTimeOffset option
-    IsActive: bool
-}
+    Status: GameStatus
+} with
+    /// Indicates whether the game session is currently ongoing.
+    member this.IsInProgress =
+        match this.Status with
+        | InProgress -> true
+        | Completed _ -> false
+
+    /// Indicates whether the game session has been completed.
+    member this.IsCompleted =
+        match this.Status with
+        | Completed _ -> true
+        | InProgress -> false
+
+    /// Returns the end date if the game has completed.
+    member this.EndDate =
+        match this.Status with
+        | Completed endDate -> Some endDate
+        | InProgress -> None
 
 /// Represents a single recorded observation of a jurisdiction license plate within a game.
 type Observation = {
