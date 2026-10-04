@@ -93,11 +93,11 @@ TheLicensePlateGame/
 
 ### Phase 2: Visual Game Board & UI Shell (Elmish In-Memory)
 
-- [ ] **2.1. Client F# Project Setup (`src/Client/Client.fsproj`)**
+- [x] **2.1. Client F# Project Setup (`src/Client/Client.fsproj`)**
   - Create `Client.fsproj` targeting `net10.0` and reference `src/Shared/Shared.fsproj`.
   - Add NuGet packages: `Fable.Core` (>= 4.3.0), `Fable.Elmish` (>= 4.2.0), `Fable.Elmish.React` (>= 4.0.0), `Feliz` (>= 2.9.0), `Fable.Browser.Dom` (>= 2.18.0), `Fable.Browser.IndexedDB` (>= 2.0.0).
   - Verify live development loop: `dotnet fable watch src/Client -o src/Client --run pnpm exec vite`.
-- [ ] **2.2. Elmish Core Types & In-Memory State (`Types.fs`, `State.fs`)**
+- [x] **2.2. Elmish Core Types & In-Memory State (`Types.fs`, `State.fs`)**
   - Define `Model`:
     - `ActiveGame: Game`
     - `Observations: Observation list`
@@ -114,16 +114,16 @@ TheLicensePlateGame/
     - `OpenModal of ModalType`
     - `CloseModal`
   - Implement pure `init` and `update` functions handling all state changes in memory.
-- [ ] **2.3. Header & Live Progress Counter (`View.fs`)**
+- [x] **2.3. Header & Live Progress Counter (`View.fs`)**
   - Render sticky top header displaying:
     - Active game title (e.g. `Trip - Oct 3, 2026`).
     - Live progress counter (e.g. `18 / 61` or dynamic tab count `15 / 51 US`).
     - Hamburger menu button.
-- [ ] **2.4. Scope Filter Tabs & Search Box (`Search.fs`, `View.fs`)**
+- [x] **2.4. Scope Filter Tabs & Search Box (`Search.fs`, `View.fs`)**
   - Render scope pills (`US States 51`, `Canadian Provinces 10`, `All 61`).
   - Render search input with real-time matching on full names and 2-letter postal codes (e.g. "la" $\rightarrow$ Louisiana).
   - Include inline clear ('X') button.
-- [ ] **2.5. State Button Grid & Tap Feedback (`View.fs`)**
+- [x] **2.5. State Button Grid & Tap Feedback (`View.fs`)**
   - Render buttons according to approved layout:
     - **Top-left**: Small 2-letter postal code (`TX`, `CA`, `ON`).
     - **Top-right**: Small count badge showing observations.
