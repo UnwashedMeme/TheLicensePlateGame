@@ -84,7 +84,7 @@ TheLicensePlateGame/
   - Implement `Events.fs`:
     - `GameEvent` union type (`PlateObserved of Observation`, `ObservationDeleted of Guid`, `GameStarted of Game`, `GameUpdated of Game`, `GameEnded of Guid`).
     - Ready for serialization and server sync.
-- [ ] **1.3. Base HTML Shell & Stylesheet Setup**
+- [x] **1.3. Base HTML Shell & Stylesheet Setup**
   - Configure `index.html` with mobile meta tags (`viewport-fit=cover`, mobile responsiveness, web app capable).
   - Create `public/css/styles.css` with CSS variables, safe-area insets, and mobile grid layouts.
 

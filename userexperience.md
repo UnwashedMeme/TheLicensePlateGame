@@ -78,6 +78,7 @@ These features are planned for future phases and are not part of the initial MVP
 - **Map Mode**: Interactive map visualization of recorded GPS coordinates, filterable by time ranges and specific jurisdictions (e.g., "Show where I was when I collected Vermont over the last year").
 - **Multiplayer**: Share collections with friends or compete in real-time road trip challenges.
 - **Server Sync**: Cloud synchronization and backup across multiple devices.
+- **Accessibility Support**: Work with Screen reader, haptic feedback
 
 ---
 
