@@ -5,14 +5,16 @@ open TheLicensePlateGame.Shared
 
 /// Scope filter for jurisdictions displayed on the game board.
 type Scope = {
-    Tag: string
+    Tag: Tag
     Count: int
     Active: bool
 }
 
 module Scope =
-    let CurrentlyUsed = [| Tags.UnitedStates; Tags.Canada |]
-    let FromTag (tag: string) : Scope =
+    let currentlyUsed = [ Tags.UnitedStates; Tags.Canada ]
+    let CurrentlyUsed = currentlyUsed
+
+    let ofTag (tag: Tag) : Scope =
         let jurisdictions = Jurisdictions.filterByTag tag
         {
             Tag = tag
@@ -20,4 +22,8 @@ module Scope =
             Active = false
         }
 
-    let Toggle (scope: Scope) : Scope = { scope with Active = not scope.Active }
+    let fromTag = ofTag
+    let FromTag = ofTag
+
+    let toggle (scope: Scope) : Scope = { scope with Active = not scope.Active }
+    let Toggle = toggle

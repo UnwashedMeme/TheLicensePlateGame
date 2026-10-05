@@ -144,7 +144,7 @@ module View =
                                 prop.onClick (fun _ -> dispatch (ToggleScope scope))
 
                                 prop.children [
-                                    Html.span scope.Tag
+                                    Html.span scope.Tag.UiFriendlyName
                                     Html.span [ prop.className "scope-pill-count"; prop.text (string scope.Count) ]
                                 ]
                             ]

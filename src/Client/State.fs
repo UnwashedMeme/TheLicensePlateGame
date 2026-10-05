@@ -35,7 +35,7 @@ module State =
         let initialModel: Model = {
             ActiveGame = initialGame
             Observations = []
-            Scopes = [ Scope.FromTag Tags.UnitedStates; Scope.FromTag Tags.Canada ]
+            Scopes = Scope.currentlyUsed |> List.map Scope.ofTag
             SearchQuery = ""
             HideObserved = false
             ActiveModal = None
@@ -70,7 +70,7 @@ module State =
 
         | ToggleScope scope ->
             let updatedScopes =
-                List.map (fun s -> if s = scope then Scope.Toggle s else s) model.Scopes
+                List.map (fun s -> if s.Tag = scope.Tag then Scope.toggle s else s) model.Scopes
             { model with Scopes = updatedScopes }, Cmd.none
 
         | ToggleHideObserved ->

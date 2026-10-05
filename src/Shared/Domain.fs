@@ -2,12 +2,68 @@ namespace TheLicensePlateGame.Shared
 
 open System
 
+/// Represents a geographical or jurisdictional category tag with a UI-friendly display name.
+type Tag =
+    // Countries
+    | UnitedStates of string
+    | Canada of string
+
+    // US Census Regions
+    | Northeast of string
+    | Midwest of string
+    | South of string
+    | West of string
+
+    // US Sub-regions & Geographic Features
+    | NewEngland of string
+    | MidAtlantic of string
+    | GreatLakes of string
+    | GreatPlains of string
+    | GulfStates of string
+    | PacificCoast of string
+    | RockyMountains of string
+    | Southwest of string
+    | Contiguous of string
+    | NonContiguous of string
+
+    // Canadian Regions
+    | AtlanticCanada of string
+    | CentralCanada of string
+    | PrairieProvinces of string
+    | WestCoast of string
+
+    /// The UI-friendly display name of this tag.
+    member this.UiFriendlyName =
+        match this with
+        | UnitedStates s
+        | Canada s
+        | Northeast s
+        | Midwest s
+        | South s
+        | West s
+        | NewEngland s
+        | MidAtlantic s
+        | GreatLakes s
+        | GreatPlains s
+        | GulfStates s
+        | PacificCoast s
+        | RockyMountains s
+        | Southwest s
+        | Contiguous s
+        | NonContiguous s
+        | AtlanticCanada s
+        | CentralCanada s
+        | PrairieProvinces s
+        | WestCoast s -> s
+
+    override this.ToString() = this.UiFriendlyName
+
 /// Represents a geographic jurisdiction whose license plates can be observed.
 type Jurisdiction = {
     Id: string
     Code: string
     Name: string
-    Tags: string list
+    Tags: Tag list
 }
 
 /// Represents the lifecycle status of a game session.
@@ -52,77 +108,41 @@ type Observation = {
     Longitude: float option
 }
 
-/// Standard tag constants for grouping, filtering, and categorizing jurisdictions.
+/// Standard tag instances with their UI-friendly names.
 module Tags =
     // Countries
-    [<Literal>]
-    let UnitedStates = "UnitedStates"
-
-    [<Literal>]
-    let Canada = "Canada"
+    let UnitedStates = Tag.UnitedStates "US States"
+    let Canada = Tag.Canada "Canadian Provinces"
 
     // US Census Regions
-    [<Literal>]
-    let Northeast = "Northeast"
-
-    [<Literal>]
-    let Midwest = "Midwest"
-
-    [<Literal>]
-    let South = "South"
-
-    [<Literal>]
-    let West = "West"
+    let Northeast = Tag.Northeast "Northeast"
+    let Midwest = Tag.Midwest "Midwest"
+    let South = Tag.South "South"
+    let West = Tag.West "West"
 
     // US Sub-regions & Geographic Features
-    [<Literal>]
-    let NewEngland = "NewEngland"
-
-    [<Literal>]
-    let MidAtlantic = "MidAtlantic"
-
-    [<Literal>]
-    let GreatLakes = "GreatLakes"
-
-    [<Literal>]
-    let GreatPlains = "GreatPlains"
-
-    [<Literal>]
-    let GulfStates = "GulfStates"
-
-    [<Literal>]
-    let PacificCoast = "PacificCoast"
-
-    [<Literal>]
-    let RockyMountains = "RockyMountains"
-
-    [<Literal>]
-    let Southwest = "Southwest"
-
-    [<Literal>]
-    let Contiguous = "Contiguous"
-
-    [<Literal>]
-    let NonContiguous = "NonContiguous"
+    let NewEngland = Tag.NewEngland "New England"
+    let MidAtlantic = Tag.MidAtlantic "Mid-Atlantic"
+    let GreatLakes = Tag.GreatLakes "Great Lakes"
+    let GreatPlains = Tag.GreatPlains "Great Plains"
+    let GulfStates = Tag.GulfStates "Gulf States"
+    let PacificCoast = Tag.PacificCoast "Pacific Coast"
+    let RockyMountains = Tag.RockyMountains "Rocky Mountains"
+    let Southwest = Tag.Southwest "Southwest"
+    let Contiguous = Tag.Contiguous "Contiguous"
+    let NonContiguous = Tag.NonContiguous "Non-Contiguous"
 
     // Canadian Regions
-    [<Literal>]
-    let AtlanticCanada = "AtlanticCanada"
-
-    [<Literal>]
-    let CentralCanada = "CentralCanada"
-
-    [<Literal>]
-    let PrairieProvinces = "PrairieProvinces"
-
-    [<Literal>]
-    let WestCoast = "WestCoast"
+    let AtlanticCanada = Tag.AtlanticCanada "Atlantic Canada"
+    let CentralCanada = Tag.CentralCanada "Central Canada"
+    let PrairieProvinces = Tag.PrairieProvinces "Prairie Provinces"
+    let WestCoast = Tag.WestCoast "West Coast"
 
 module Jurisdictions =
     /// Check whether a jurisdiction contains a specific tag.
-    let hasTag (tag: string) (j: Jurisdiction) : bool = List.contains tag j.Tags
+    let hasTag (tag: Tag) (j: Jurisdiction) : bool = List.contains tag j.Tags
 
-    let hasAnyTag (tags: string list) (j: Jurisdiction) : bool =
+    let hasAnyTag (tags: Tag list) (j: Jurisdiction) : bool =
         List.exists (fun tag -> hasTag tag j) tags
 
     /// All 61 supported jurisdictions with comprehensive regional tags.
@@ -559,7 +579,7 @@ module Jurisdictions =
     ]
 
     /// Quick filter for jurisdictions by tag (e.g., Tags.UnitedStates, Tags.GulfStates).
-    let filterByTag (tag: string) : Jurisdiction list = all |> List.filter (hasTag tag)
+    let filterByTag (tag: Tag) : Jurisdiction list = all |> List.filter (hasTag tag)
 
     /// The 50 US States plus District of Columbia (51 jurisdictions).
     let usStates: Jurisdiction list = filterByTag Tags.UnitedStates
