@@ -5,56 +5,63 @@ open System
 /// Represents a geographical or jurisdictional category tag with a UI-friendly display name.
 type Tag =
     // Countries
-    | UnitedStates of string
-    | Canada of string
+    | UnitedStates
+    | Canada
 
     // US Census Regions
-    | Northeast of string
-    | Midwest of string
-    | South of string
-    | West of string
+    | Northeast
+    | Midwest
+    | South
+    | West
 
     // US Sub-regions & Geographic Features
-    | NewEngland of string
-    | MidAtlantic of string
-    | GreatLakes of string
-    | GreatPlains of string
-    | GulfStates of string
-    | PacificCoast of string
-    | RockyMountains of string
-    | Southwest of string
-    | Contiguous of string
-    | NonContiguous of string
+    | NewEngland
+    | MidAtlantic
+    | GreatLakes
+    | GreatPlains
+    | GulfStates
+    | PacificCoast
+    | RockyMountains
+    | Southwest
+    | Contiguous
+    | NonContiguous
 
     // Canadian Regions
-    | AtlanticCanada of string
-    | CentralCanada of string
-    | PrairieProvinces of string
-    | WestCoast of string
+    | AtlanticCanada
+    | CentralCanada
+    | PrairieProvinces
+    | WestCoast
 
     /// The UI-friendly display name of this tag.
     member this.UiFriendlyName =
         match this with
-        | UnitedStates s
-        | Canada s
-        | Northeast s
-        | Midwest s
-        | South s
-        | West s
-        | NewEngland s
-        | MidAtlantic s
-        | GreatLakes s
-        | GreatPlains s
-        | GulfStates s
-        | PacificCoast s
-        | RockyMountains s
-        | Southwest s
-        | Contiguous s
-        | NonContiguous s
-        | AtlanticCanada s
-        | CentralCanada s
-        | PrairieProvinces s
-        | WestCoast s -> s
+        | UnitedStates -> "US States"
+        | Canada -> "Canadian Provinces"
+
+        // US Census Regions
+        | Northeast -> "Northeast"
+        | Midwest -> "Midwest"
+        | South -> "South"
+        | West -> "West"
+
+        // US Sub-regions & Geographic Features
+        | NewEngland -> "New England"
+        | MidAtlantic -> "Mid-Atlantic"
+        | GreatLakes -> "Great Lakes"
+        | GreatPlains -> "Great Plains"
+        | GulfStates -> "Gulf States"
+        | PacificCoast -> "Pacific Coast"
+        | RockyMountains -> "Rocky Mountains"
+        | Southwest -> "Southwest"
+        | Contiguous -> "Contiguous"
+        | NonContiguous -> "Non-Contiguous"
+
+        // Canadian Regions
+        | AtlanticCanada -> "Atlantic Canada"
+        | CentralCanada -> "Central Canada"
+        | PrairieProvinces -> "Prairie Provinces"
+        | WestCoast -> "West Coast"
+
 
     override this.ToString() = this.UiFriendlyName
 
@@ -108,35 +115,7 @@ type Observation = {
     Longitude: float option
 }
 
-/// Standard tag instances with their UI-friendly names.
-module Tags =
-    // Countries
-    let UnitedStates = Tag.UnitedStates "US States"
-    let Canada = Tag.Canada "Canadian Provinces"
 
-    // US Census Regions
-    let Northeast = Tag.Northeast "Northeast"
-    let Midwest = Tag.Midwest "Midwest"
-    let South = Tag.South "South"
-    let West = Tag.West "West"
-
-    // US Sub-regions & Geographic Features
-    let NewEngland = Tag.NewEngland "New England"
-    let MidAtlantic = Tag.MidAtlantic "Mid-Atlantic"
-    let GreatLakes = Tag.GreatLakes "Great Lakes"
-    let GreatPlains = Tag.GreatPlains "Great Plains"
-    let GulfStates = Tag.GulfStates "Gulf States"
-    let PacificCoast = Tag.PacificCoast "Pacific Coast"
-    let RockyMountains = Tag.RockyMountains "Rocky Mountains"
-    let Southwest = Tag.Southwest "Southwest"
-    let Contiguous = Tag.Contiguous "Contiguous"
-    let NonContiguous = Tag.NonContiguous "Non-Contiguous"
-
-    // Canadian Regions
-    let AtlanticCanada = Tag.AtlanticCanada "Atlantic Canada"
-    let CentralCanada = Tag.CentralCanada "Central Canada"
-    let PrairieProvinces = Tag.PrairieProvinces "Prairie Provinces"
-    let WestCoast = Tag.WestCoast "West Coast"
 
 module Jurisdictions =
     /// Check whether a jurisdiction contains a specific tag.
@@ -152,216 +131,216 @@ module Jurisdictions =
             Id = "US-AL"
             Code = "AL"
             Name = "Alabama"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.GulfStates; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.GulfStates; Tag.Contiguous ]
         }
         {
             Id = "US-AK"
             Code = "AK"
             Name = "Alaska"
-            Tags = [ Tags.UnitedStates; Tags.West; Tags.PacificCoast; Tags.NonContiguous ]
+            Tags = [ Tag.UnitedStates; Tag.West; Tag.PacificCoast; Tag.NonContiguous ]
         }
         {
             Id = "US-AZ"
             Code = "AZ"
             Name = "Arizona"
             Tags = [
-                Tags.UnitedStates
-                Tags.West
-                Tags.Southwest
-                Tags.RockyMountains
-                Tags.Contiguous
+                Tag.UnitedStates
+                Tag.West
+                Tag.Southwest
+                Tag.RockyMountains
+                Tag.Contiguous
             ]
         }
         {
             Id = "US-AR"
             Code = "AR"
             Name = "Arkansas"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.Contiguous ]
         }
         {
             Id = "US-CA"
             Code = "CA"
             Name = "California"
-            Tags = [ Tags.UnitedStates; Tags.West; Tags.PacificCoast; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.West; Tag.PacificCoast; Tag.Contiguous ]
         }
         {
             Id = "US-CO"
             Code = "CO"
             Name = "Colorado"
-            Tags = [ Tags.UnitedStates; Tags.West; Tags.RockyMountains; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.West; Tag.RockyMountains; Tag.Contiguous ]
         }
         {
             Id = "US-CT"
             Code = "CT"
             Name = "Connecticut"
-            Tags = [ Tags.UnitedStates; Tags.Northeast; Tags.NewEngland; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Northeast; Tag.NewEngland; Tag.Contiguous ]
         }
         {
             Id = "US-DE"
             Code = "DE"
             Name = "Delaware"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.MidAtlantic; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.MidAtlantic; Tag.Contiguous ]
         }
         {
             Id = "US-FL"
             Code = "FL"
             Name = "Florida"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.GulfStates; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.GulfStates; Tag.Contiguous ]
         }
         {
             Id = "US-GA"
             Code = "GA"
             Name = "Georgia"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.Contiguous ]
         }
         {
             Id = "US-HI"
             Code = "HI"
             Name = "Hawaii"
-            Tags = [ Tags.UnitedStates; Tags.West; Tags.PacificCoast; Tags.NonContiguous ]
+            Tags = [ Tag.UnitedStates; Tag.West; Tag.PacificCoast; Tag.NonContiguous ]
         }
         {
             Id = "US-ID"
             Code = "ID"
             Name = "Idaho"
             Tags = [
-                Tags.UnitedStates
-                Tags.West
-                Tags.RockyMountains
-                Tags.PacificCoast
-                Tags.Contiguous
+                Tag.UnitedStates
+                Tag.West
+                Tag.RockyMountains
+                Tag.PacificCoast
+                Tag.Contiguous
             ]
         }
         {
             Id = "US-IL"
             Code = "IL"
             Name = "Illinois"
-            Tags = [ Tags.UnitedStates; Tags.Midwest; Tags.GreatLakes; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Midwest; Tag.GreatLakes; Tag.Contiguous ]
         }
         {
             Id = "US-IN"
             Code = "IN"
             Name = "Indiana"
-            Tags = [ Tags.UnitedStates; Tags.Midwest; Tags.GreatLakes; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Midwest; Tag.GreatLakes; Tag.Contiguous ]
         }
         {
             Id = "US-IA"
             Code = "IA"
             Name = "Iowa"
-            Tags = [ Tags.UnitedStates; Tags.Midwest; Tags.GreatPlains; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Midwest; Tag.GreatPlains; Tag.Contiguous ]
         }
         {
             Id = "US-KS"
             Code = "KS"
             Name = "Kansas"
-            Tags = [ Tags.UnitedStates; Tags.Midwest; Tags.GreatPlains; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Midwest; Tag.GreatPlains; Tag.Contiguous ]
         }
         {
             Id = "US-KY"
             Code = "KY"
             Name = "Kentucky"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.Contiguous ]
         }
         {
             Id = "US-LA"
             Code = "LA"
             Name = "Louisiana"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.GulfStates; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.GulfStates; Tag.Contiguous ]
         }
         {
             Id = "US-ME"
             Code = "ME"
             Name = "Maine"
-            Tags = [ Tags.UnitedStates; Tags.Northeast; Tags.NewEngland; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Northeast; Tag.NewEngland; Tag.Contiguous ]
         }
         {
             Id = "US-MD"
             Code = "MD"
             Name = "Maryland"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.MidAtlantic; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.MidAtlantic; Tag.Contiguous ]
         }
         {
             Id = "US-MA"
             Code = "MA"
             Name = "Massachusetts"
-            Tags = [ Tags.UnitedStates; Tags.Northeast; Tags.NewEngland; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Northeast; Tag.NewEngland; Tag.Contiguous ]
         }
         {
             Id = "US-MI"
             Code = "MI"
             Name = "Michigan"
-            Tags = [ Tags.UnitedStates; Tags.Midwest; Tags.GreatLakes; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Midwest; Tag.GreatLakes; Tag.Contiguous ]
         }
         {
             Id = "US-MN"
             Code = "MN"
             Name = "Minnesota"
             Tags = [
-                Tags.UnitedStates
-                Tags.Midwest
-                Tags.GreatLakes
-                Tags.GreatPlains
-                Tags.Contiguous
+                Tag.UnitedStates
+                Tag.Midwest
+                Tag.GreatLakes
+                Tag.GreatPlains
+                Tag.Contiguous
             ]
         }
         {
             Id = "US-MS"
             Code = "MS"
             Name = "Mississippi"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.GulfStates; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.GulfStates; Tag.Contiguous ]
         }
         {
             Id = "US-MO"
             Code = "MO"
             Name = "Missouri"
-            Tags = [ Tags.UnitedStates; Tags.Midwest; Tags.GreatPlains; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Midwest; Tag.GreatPlains; Tag.Contiguous ]
         }
         {
             Id = "US-MT"
             Code = "MT"
             Name = "Montana"
             Tags = [
-                Tags.UnitedStates
-                Tags.West
-                Tags.RockyMountains
-                Tags.GreatPlains
-                Tags.Contiguous
+                Tag.UnitedStates
+                Tag.West
+                Tag.RockyMountains
+                Tag.GreatPlains
+                Tag.Contiguous
             ]
         }
         {
             Id = "US-NE"
             Code = "NE"
             Name = "Nebraska"
-            Tags = [ Tags.UnitedStates; Tags.Midwest; Tags.GreatPlains; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Midwest; Tag.GreatPlains; Tag.Contiguous ]
         }
         {
             Id = "US-NV"
             Code = "NV"
             Name = "Nevada"
-            Tags = [ Tags.UnitedStates; Tags.West; Tags.Southwest; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.West; Tag.Southwest; Tag.Contiguous ]
         }
         {
             Id = "US-NH"
             Code = "NH"
             Name = "New Hampshire"
-            Tags = [ Tags.UnitedStates; Tags.Northeast; Tags.NewEngland; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Northeast; Tag.NewEngland; Tag.Contiguous ]
         }
         {
             Id = "US-NJ"
             Code = "NJ"
             Name = "New Jersey"
-            Tags = [ Tags.UnitedStates; Tags.Northeast; Tags.MidAtlantic; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Northeast; Tag.MidAtlantic; Tag.Contiguous ]
         }
         {
             Id = "US-NM"
             Code = "NM"
             Name = "New Mexico"
             Tags = [
-                Tags.UnitedStates
-                Tags.West
-                Tags.Southwest
-                Tags.RockyMountains
-                Tags.Contiguous
+                Tag.UnitedStates
+                Tag.West
+                Tag.Southwest
+                Tag.RockyMountains
+                Tag.Contiguous
             ]
         }
         {
@@ -369,150 +348,144 @@ module Jurisdictions =
             Code = "NY"
             Name = "New York"
             Tags = [
-                Tags.UnitedStates
-                Tags.Northeast
-                Tags.MidAtlantic
-                Tags.GreatLakes
-                Tags.Contiguous
+                Tag.UnitedStates
+                Tag.Northeast
+                Tag.MidAtlantic
+                Tag.GreatLakes
+                Tag.Contiguous
             ]
         }
         {
             Id = "US-NC"
             Code = "NC"
             Name = "North Carolina"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.Contiguous ]
         }
         {
             Id = "US-ND"
             Code = "ND"
             Name = "North Dakota"
-            Tags = [ Tags.UnitedStates; Tags.Midwest; Tags.GreatPlains; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Midwest; Tag.GreatPlains; Tag.Contiguous ]
         }
         {
             Id = "US-OH"
             Code = "OH"
             Name = "Ohio"
-            Tags = [ Tags.UnitedStates; Tags.Midwest; Tags.GreatLakes; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Midwest; Tag.GreatLakes; Tag.Contiguous ]
         }
         {
             Id = "US-OK"
             Code = "OK"
             Name = "Oklahoma"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.GreatPlains; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.GreatPlains; Tag.Contiguous ]
         }
         {
             Id = "US-OR"
             Code = "OR"
             Name = "Oregon"
-            Tags = [ Tags.UnitedStates; Tags.West; Tags.PacificCoast; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.West; Tag.PacificCoast; Tag.Contiguous ]
         }
         {
             Id = "US-PA"
             Code = "PA"
             Name = "Pennsylvania"
             Tags = [
-                Tags.UnitedStates
-                Tags.Northeast
-                Tags.MidAtlantic
-                Tags.GreatLakes
-                Tags.Contiguous
+                Tag.UnitedStates
+                Tag.Northeast
+                Tag.MidAtlantic
+                Tag.GreatLakes
+                Tag.Contiguous
             ]
         }
         {
             Id = "US-RI"
             Code = "RI"
             Name = "Rhode Island"
-            Tags = [ Tags.UnitedStates; Tags.Northeast; Tags.NewEngland; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Northeast; Tag.NewEngland; Tag.Contiguous ]
         }
         {
             Id = "US-SC"
             Code = "SC"
             Name = "South Carolina"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.Contiguous ]
         }
         {
             Id = "US-SD"
             Code = "SD"
             Name = "South Dakota"
-            Tags = [ Tags.UnitedStates; Tags.Midwest; Tags.GreatPlains; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Midwest; Tag.GreatPlains; Tag.Contiguous ]
         }
         {
             Id = "US-TN"
             Code = "TN"
             Name = "Tennessee"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.Contiguous ]
         }
         {
             Id = "US-TX"
             Code = "TX"
             Name = "Texas"
-            Tags = [
-                Tags.UnitedStates
-                Tags.South
-                Tags.GulfStates
-                Tags.Southwest
-                Tags.Contiguous
-            ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.GulfStates; Tag.Southwest; Tag.Contiguous ]
         }
         {
             Id = "US-UT"
             Code = "UT"
             Name = "Utah"
             Tags = [
-                Tags.UnitedStates
-                Tags.West
-                Tags.Southwest
-                Tags.RockyMountains
-                Tags.Contiguous
+                Tag.UnitedStates
+                Tag.West
+                Tag.Southwest
+                Tag.RockyMountains
+                Tag.Contiguous
             ]
         }
         {
             Id = "US-VT"
             Code = "VT"
             Name = "Vermont"
-            Tags = [ Tags.UnitedStates; Tags.Northeast; Tags.NewEngland; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Northeast; Tag.NewEngland; Tag.Contiguous ]
         }
         {
             Id = "US-VA"
             Code = "VA"
             Name = "Virginia"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.Contiguous ]
         }
         {
             Id = "US-WA"
             Code = "WA"
             Name = "Washington"
-            Tags = [ Tags.UnitedStates; Tags.West; Tags.PacificCoast; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.West; Tag.PacificCoast; Tag.Contiguous ]
         }
         {
             Id = "US-WV"
             Code = "WV"
             Name = "West Virginia"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.Contiguous ]
         }
         {
             Id = "US-WI"
             Code = "WI"
             Name = "Wisconsin"
-            Tags = [ Tags.UnitedStates; Tags.Midwest; Tags.GreatLakes; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.Midwest; Tag.GreatLakes; Tag.Contiguous ]
         }
         {
             Id = "US-WY"
             Code = "WY"
             Name = "Wyoming"
             Tags = [
-                Tags.UnitedStates
-                Tags.West
-                Tags.RockyMountains
-                Tags.GreatPlains
-                Tags.Contiguous
+                Tag.UnitedStates
+                Tag.West
+                Tag.RockyMountains
+                Tag.GreatPlains
+                Tag.Contiguous
             ]
         }
         {
             Id = "US-DC"
             Code = "DC"
             Name = "District of Columbia"
-            Tags = [ Tags.UnitedStates; Tags.South; Tags.MidAtlantic; Tags.Contiguous ]
+            Tags = [ Tag.UnitedStates; Tag.South; Tag.MidAtlantic; Tag.Contiguous ]
         }
 
         // --- Canadian Provinces (10) ---
@@ -520,72 +493,72 @@ module Jurisdictions =
             Id = "CA-AB"
             Code = "AB"
             Name = "Alberta"
-            Tags = [ Tags.Canada; Tags.PrairieProvinces; Tags.RockyMountains ]
+            Tags = [ Tag.Canada; Tag.PrairieProvinces; Tag.RockyMountains ]
         }
         {
             Id = "CA-BC"
             Code = "BC"
             Name = "British Columbia"
-            Tags = [ Tags.Canada; Tags.WestCoast; Tags.RockyMountains ]
+            Tags = [ Tag.Canada; Tag.WestCoast; Tag.RockyMountains ]
         }
         {
             Id = "CA-MB"
             Code = "MB"
             Name = "Manitoba"
-            Tags = [ Tags.Canada; Tags.PrairieProvinces ]
+            Tags = [ Tag.Canada; Tag.PrairieProvinces ]
         }
         {
             Id = "CA-NB"
             Code = "NB"
             Name = "New Brunswick"
-            Tags = [ Tags.Canada; Tags.AtlanticCanada ]
+            Tags = [ Tag.Canada; Tag.AtlanticCanada ]
         }
         {
             Id = "CA-NL"
             Code = "NL"
             Name = "Newfoundland and Labrador"
-            Tags = [ Tags.Canada; Tags.AtlanticCanada ]
+            Tags = [ Tag.Canada; Tag.AtlanticCanada ]
         }
         {
             Id = "CA-NS"
             Code = "NS"
             Name = "Nova Scotia"
-            Tags = [ Tags.Canada; Tags.AtlanticCanada ]
+            Tags = [ Tag.Canada; Tag.AtlanticCanada ]
         }
         {
             Id = "CA-ON"
             Code = "ON"
             Name = "Ontario"
-            Tags = [ Tags.Canada; Tags.CentralCanada; Tags.GreatLakes ]
+            Tags = [ Tag.Canada; Tag.CentralCanada; Tag.GreatLakes ]
         }
         {
             Id = "CA-PE"
             Code = "PE"
             Name = "Prince Edward Island"
-            Tags = [ Tags.Canada; Tags.AtlanticCanada ]
+            Tags = [ Tag.Canada; Tag.AtlanticCanada ]
         }
         {
             Id = "CA-QC"
             Code = "QC"
             Name = "Quebec"
-            Tags = [ Tags.Canada; Tags.CentralCanada ]
+            Tags = [ Tag.Canada; Tag.CentralCanada ]
         }
         {
             Id = "CA-SK"
             Code = "SK"
             Name = "Saskatchewan"
-            Tags = [ Tags.Canada; Tags.PrairieProvinces ]
+            Tags = [ Tag.Canada; Tag.PrairieProvinces ]
         }
     ]
 
-    /// Quick filter for jurisdictions by tag (e.g., Tags.UnitedStates, Tags.GulfStates).
+    /// Quick filter for jurisdictions by tag (e.g., Tag.UnitedStates, Tag.GulfStates).
     let filterByTag (tag: Tag) : Jurisdiction list = all |> List.filter (hasTag tag)
 
     /// The 50 US States plus District of Columbia (51 jurisdictions).
-    let usStates: Jurisdiction list = filterByTag Tags.UnitedStates
+    let usStates: Jurisdiction list = filterByTag Tag.UnitedStates
 
     /// The 10 Canadian Provinces.
-    let canadianProvinces: Jurisdiction list = filterByTag Tags.Canada
+    let canadianProvinces: Jurisdiction list = filterByTag Tag.Canada
 
     /// Quick lookup index by jurisdiction ID (e.g., "US-CA", "CA-ON").
     let byId: Map<string, Jurisdiction> =
