@@ -8,8 +8,7 @@ open TheLicensePlateGame.Shared
 /// Types of active modals or drawers with their in-flight form data.
 type ModalType =
     | HamburgerMenu
-    | EditGameInfo of name: string * notes: string
-    | NewGameConfirm of name: string * notes: string
+    | GameModal of GameModal.Model
     | ObservationDetails of jurisdictionId: string
 
 /// Core Elmish application state.
@@ -24,19 +23,16 @@ type Model = {
 
 /// Elmish messages representing all user and system events.
 type Msg =
+    | GameModalMsg of GameModal.Msg
     | PlateTapped of jurisdictionId: string
     | SearchChanged of string
     | ClearSearch
     | ToggleScope of Scope
     | ToggleHideObserved
-    | OpenModal of ModalType
+    | OpenMenu
+    | EditGame
+    | NewGame
     | CloseModal
-    | EditGameNameChanged of string
-    | EditGameNotesChanged of string
-    | SaveGameInfo
-    | NewGameNameChanged of string
-    | NewGameNotesChanged of string
-    | ConfirmNewGame
     | DeleteObservation of id: Guid
 
 module Model =

@@ -1,13 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.fsproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Fable.Core" Version="4.3.0" />
     <PackageReference Include="Fable.Elmish" Version="4.2.0" />
@@ -16,14 +13,14 @@
     <PackageReference Include="Fable.Browser.Dom" Version="2.18.0" />
     <PackageReference Include="Fable.Browser.IndexedDB" Version="2.0.0" />
   </ItemGroup>
-
   <ItemGroup>
+    <Compile Include="Icons.fs" />
     <Compile Include="Scopes.fs" />
+    <Compile Include="GameModal.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Search.fs" />
     <Compile Include="State.fs" />
     <Compile Include="View.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
-
 </Project>

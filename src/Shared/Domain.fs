@@ -104,6 +104,14 @@ type Game = {
         match this.Status with
         | Completed endDate -> Some endDate
         | InProgress -> None
+    static member New() : Game = {
+        Id = Guid.NewGuid()
+        Name = sprintf "Trip - %s" (DateTimeOffset.Now.ToString("MMM d, yyyy"))
+        Notes = None
+        StartDate = DateTimeOffset.UtcNow
+        Status = InProgress
+    }
+
 
 /// Represents a single recorded observation of a jurisdiction license plate within a game.
 type Observation = {

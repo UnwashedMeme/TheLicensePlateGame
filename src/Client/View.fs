@@ -7,61 +7,6 @@ open TheLicensePlateGame.Shared
 
 module View =
 
-    // =========================================================================
-    // SVG Icons
-    // =========================================================================
-
-    module Icons =
-        let hamburger () =
-            Svg.svg [
-                svg.viewBox (0, 0, 24, 24)
-                svg.fill "none"
-                svg.stroke "currentColor"
-                svg.strokeWidth 2
-                svg.children [
-                    Svg.line [ svg.x1 3; svg.y1 6; svg.x2 21; svg.y2 6 ]
-                    Svg.line [ svg.x1 3; svg.y1 12; svg.x2 21; svg.y2 12 ]
-                    Svg.line [ svg.x1 3; svg.y1 18; svg.x2 21; svg.y2 18 ]
-                ]
-            ]
-
-        let search () =
-            Svg.svg [
-                svg.className "search-icon"
-                svg.viewBox (0, 0, 24, 24)
-                svg.fill "none"
-                svg.stroke "currentColor"
-                svg.strokeWidth 2
-                svg.children [
-                    Svg.circle [ svg.cx 11; svg.cy 11; svg.r 8 ]
-                    Svg.line [ svg.x1 21; svg.y1 21; svg.x2 16.65; svg.y2 16.65 ]
-                ]
-            ]
-
-        let close () =
-            Svg.svg [
-                svg.viewBox (0, 0, 24, 24)
-                svg.fill "none"
-                svg.stroke "currentColor"
-                svg.strokeWidth 2
-                svg.children [
-                    Svg.line [ svg.x1 18; svg.y1 6; svg.x2 6; svg.y2 18 ]
-                    Svg.line [ svg.x1 6; svg.y1 6; svg.x2 18; svg.y2 18 ]
-                ]
-            ]
-
-        let edit () =
-            Svg.svg [
-                svg.className "game-title-edit-icon"
-                svg.viewBox (0, 0, 24, 24)
-                svg.fill "none"
-                svg.stroke "currentColor"
-                svg.strokeWidth 2
-                svg.children [
-                    Svg.path [ svg.d "M12 20h9" ]
-                    Svg.path [ svg.d "M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" ]
-                ]
-            ]
 
     // =========================================================================
     // Header Component
@@ -81,12 +26,7 @@ module View =
                                 Html.button [
                                     prop.className "game-title-button"
                                     prop.ariaLabel "Edit game title and notes"
-                                    prop.onClick (fun _ ->
-                                        let currentName = model.ActiveGame.Name
-
-                                        let currentNotes = defaultArg model.ActiveGame.Notes ""
-
-                                        dispatch (OpenModal(EditGameInfo(currentName, currentNotes))))
+                                    prop.onClick (fun _ -> dispatch EditGame)
                                     prop.children [
                                         Html.span [ prop.className "game-title"; prop.text model.ActiveGame.Name ]
                                         Icons.edit ()
@@ -107,7 +47,7 @@ module View =
                                 Html.button [
                                     prop.className "icon-button"
                                     prop.ariaLabel "Open navigation menu"
-                                    prop.onClick (fun _ -> dispatch (OpenModal HamburgerMenu))
+                                    prop.onClick (fun _ -> dispatch OpenMenu)
                                     prop.children [ Icons.hamburger () ]
                                 ]
                             ]
@@ -293,22 +233,14 @@ module View =
                                 // Edit Game Info
                                 Html.button [
                                     prop.className "drawer-item"
-                                    prop.onClick (fun _ ->
-                                        let currentName = model.ActiveGame.Name
-                                        let currentNotes = defaultArg model.ActiveGame.Notes ""
-
-                                        dispatch (OpenModal(EditGameInfo(currentName, currentNotes))))
+                                    prop.onClick (fun _ -> dispatch EditGame)
                                     prop.text "Edit Game Info"
                                 ]
 
                                 // New Game
                                 Html.button [
                                     prop.className "drawer-item"
-                                    prop.onClick (fun _ ->
-                                        let defaultNewName =
-                                            sprintf "Trip - %s" (DateTimeOffset.UtcNow.ToString("MMM d, yyyy"))
-
-                                        dispatch (OpenModal(NewGameConfirm(defaultNewName, ""))))
+                                    prop.onClick (fun _ -> dispatch NewGame)
                                     prop.text "New Game"
                                 ]
                             ]
@@ -322,152 +254,6 @@ module View =
     // Modals: Edit Game Info, New Game Confirm, Observation Details
     // =========================================================================
 
-    let private editGameModal (name: string) (notes: string) (dispatch: Msg -> unit) =
-        Html.div [
-            prop.className "modal-backdrop"
-            prop.onClick (fun _ -> dispatch CloseModal)
-            prop.children [
-                Html.div [
-                    prop.className "modal-card"
-                    prop.onClick (fun e -> e.stopPropagation ())
-                    prop.children [
-                        Html.div [
-                            prop.className "modal-header"
-                            prop.children [
-                                Html.h2 [ prop.className "modal-title"; prop.text "Edit Game Info" ]
-                                Html.button [
-                                    prop.className "icon-button"
-                                    prop.onClick (fun _ -> dispatch CloseModal)
-                                    prop.children [ Icons.close () ]
-                                ]
-                            ]
-                        ]
-
-                        Html.div [
-                            prop.className "modal-body"
-                            prop.children [
-                                Html.div [
-                                    prop.className "form-group"
-                                    prop.children [
-                                        Html.label [ prop.className "form-label"; prop.text "Game Name" ]
-                                        Html.input [
-                                            prop.className "form-input"
-                                            prop.value name
-                                            prop.onChange (EditGameNameChanged >> dispatch)
-                                            prop.placeholder "e.g. 2026 Summer Roadtrip"
-                                        ]
-                                    ]
-                                ]
-
-                                Html.div [
-                                    prop.className "form-group"
-                                    prop.children [
-                                        Html.label [ prop.className "form-label"; prop.text "Notes (optional)" ]
-                                        Html.textarea [
-                                            prop.className "form-textarea"
-                                            prop.value notes
-                                            prop.onChange (EditGameNotesChanged >> dispatch)
-                                            prop.placeholder "Add details or goals for this trip..."
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-
-                        Html.div [
-                            prop.className "modal-footer"
-                            prop.children [
-                                Html.button [
-                                    prop.className "btn btn-secondary"
-                                    prop.onClick (fun _ -> dispatch CloseModal)
-                                    prop.text "Cancel"
-                                ]
-                                Html.button [
-                                    prop.className "btn btn-primary"
-                                    prop.onClick (fun _ -> dispatch SaveGameInfo)
-                                    prop.text "Save"
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ]
-
-    let private newGameModal (name: string) (notes: string) (dispatch: Msg -> unit) =
-        Html.div [
-            prop.className "modal-backdrop"
-            prop.onClick (fun _ -> dispatch CloseModal)
-            prop.children [
-                Html.div [
-                    prop.className "modal-card"
-                    prop.onClick (fun e -> e.stopPropagation ())
-                    prop.children [
-                        Html.div [
-                            prop.className "modal-header"
-                            prop.children [
-                                Html.h2 [ prop.className "modal-title"; prop.text "Start New Game" ]
-                                Html.button [
-                                    prop.className "icon-button"
-                                    prop.onClick (fun _ -> dispatch CloseModal)
-                                    prop.children [ Icons.close () ]
-                                ]
-                            ]
-                        ]
-
-                        Html.div [
-                            prop.className "modal-body"
-                            prop.children [
-                                Html.p [
-                                    prop.className "form-label"
-                                    prop.text
-                                        "Starting a new game concludes your active session. All historical observations are preserved."
-                                ]
-                                Html.div [
-                                    prop.className "form-group"
-                                    prop.children [
-                                        Html.label [ prop.className "form-label"; prop.text "New Game Name" ]
-                                        Html.input [
-                                            prop.className "form-input"
-                                            prop.value name
-                                            prop.onChange (NewGameNameChanged >> dispatch)
-                                        ]
-                                    ]
-                                ]
-                                Html.div [
-                                    prop.className "form-group"
-                                    prop.children [
-                                        Html.label [ prop.className "form-label"; prop.text "Notes (optional)" ]
-                                        Html.textarea [
-                                            prop.className "form-textarea"
-                                            prop.value notes
-                                            prop.onChange (NewGameNotesChanged >> dispatch)
-                                            prop.placeholder "Trip notes..."
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-
-                        Html.div [
-                            prop.className "modal-footer"
-                            prop.children [
-                                Html.button [
-                                    prop.className "btn btn-secondary"
-                                    prop.onClick (fun _ -> dispatch CloseModal)
-                                    prop.text "Cancel"
-                                ]
-                                Html.button [
-                                    prop.className "btn btn-primary"
-                                    prop.onClick (fun _ -> dispatch ConfirmNewGame)
-                                    prop.text "Start Game"
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ]
 
     let private observationDetailsModal (jurisdictionId: string) (model: Model) (dispatch: Msg -> unit) =
         let jurisdictionOpt = Jurisdictions.tryFind jurisdictionId
@@ -546,8 +332,7 @@ module View =
 
     let private modalsView (model: Model) (dispatch: Msg -> unit) =
         match model.ActiveModal with
-        | Some(EditGameInfo(name, notes)) -> editGameModal name notes dispatch
-        | Some(NewGameConfirm(name, notes)) -> newGameModal name notes dispatch
+        | Some(GameModal gm) -> GameModal.view gm (GameModalMsg >> dispatch)
         | Some(ObservationDetails jId) -> observationDetailsModal jId model dispatch
         | _ -> Html.none
 

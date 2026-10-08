@@ -22,15 +22,7 @@ module State =
 
     /// Initialize the default in-memory game state.
     let init () : Model * Cmd<Msg> =
-        let now = DateTimeOffset.UtcNow
-        let defaultGameName = sprintf "Trip - %s" (now.ToString("MMM d, yyyy"))
-        let initialGame: Game = {
-            Id = Guid.NewGuid()
-            Name = defaultGameName
-            Notes = None
-            StartDate = now
-            Status = InProgress
-        }
+        let initialGame = Game.New()
 
         let initialModel: Model = {
             ActiveGame = initialGame
@@ -80,108 +72,57 @@ module State =
             },
             Cmd.none
 
-        | OpenModal modal -> { model with ActiveModal = Some modal }, Cmd.none
+        | OpenMenu ->
+            {
+                model with
+                    ActiveModal = Some HamburgerMenu
+            },
+            Cmd.none
+
+        | EditGame ->
+            let newModal = GameModal(GameModal.EditGame model.ActiveGame)
+            {
+                model with
+                    ActiveModal = Some newModal
+            },
+            Cmd.none
+
+        | NewGame ->
+            let newModal = GameModal(GameModal.NewGame(Game.New()))
+            {
+                model with
+                    ActiveModal = Some newModal
+            },
+            Cmd.none
 
         | CloseModal -> { model with ActiveModal = None }, Cmd.none
 
-        | EditGameNameChanged newName ->
+        | GameModalMsg childMsg ->
             match model.ActiveModal with
-            | Some(EditGameInfo(_, notes)) ->
-                {
-                    model with
-                        ActiveModal = Some(EditGameInfo(newName, notes))
-                },
-                Cmd.none
-            | _ -> model, Cmd.none
-
-        | EditGameNotesChanged newNotes ->
-            match model.ActiveModal with
-            | Some(EditGameInfo(name, _)) ->
-                {
-                    model with
-                        ActiveModal = Some(EditGameInfo(name, newNotes))
-                },
-                Cmd.none
-            | _ -> model, Cmd.none
-
-        | SaveGameInfo ->
-            match model.ActiveModal with
-            | Some(EditGameInfo(name, notes)) ->
-                let cleanedName =
-                    if String.IsNullOrWhiteSpace name then
-                        model.ActiveGame.Name
-                    else
-                        name.Trim()
-                let cleanedNotes =
-                    if String.IsNullOrWhiteSpace notes then
-                        None
-                    else
-                        Some(notes.Trim())
-                let updatedGame = {
-                    model.ActiveGame with
-                        Name = cleanedName
-                        Notes = cleanedNotes
-                }
-                {
-                    model with
-                        ActiveGame = updatedGame
-                        ActiveModal = None
-                },
-                Cmd.none
-            | _ -> model, Cmd.none
-
-        | NewGameNameChanged newName ->
-            match model.ActiveModal with
-            | Some(NewGameConfirm(_, notes)) ->
-                {
-                    model with
-                        ActiveModal = Some(NewGameConfirm(newName, notes))
-                },
-                Cmd.none
-            | _ -> model, Cmd.none
-
-        | NewGameNotesChanged newNotes ->
-            match model.ActiveModal with
-            | Some(NewGameConfirm(name, _)) ->
-                {
-                    model with
-                        ActiveModal = Some(NewGameConfirm(name, newNotes))
-                },
-                Cmd.none
-            | _ -> model, Cmd.none
-
-        | ConfirmNewGame ->
-            match model.ActiveModal with
-            | Some(NewGameConfirm(name, notes)) ->
-                let now = DateTimeOffset.UtcNow
-                let fallbackName = sprintf "Trip - %s" (now.ToString("MMM d, yyyy"))
-                let newGameTitle =
-                    if String.IsNullOrWhiteSpace name then
-                        fallbackName
-                    else
-                        name.Trim()
-                let cleanedNotes =
-                    if String.IsNullOrWhiteSpace notes then
-                        None
-                    else
-                        Some(notes.Trim())
-
-                let newGame: Game = {
-                    Id = Guid.NewGuid()
-                    Name = newGameTitle
-                    Notes = cleanedNotes
-                    StartDate = now
-                    Status = InProgress
-                }
-
-                let freshModel = {
-                    model with
-                        ActiveGame = newGame
-                        Observations = []
-                        SearchQuery = ""
-                        ActiveModal = None
-                }
-                freshModel, Cmd.none
+            | Some(GameModal childModel) ->
+                let updatedChild, cmd, outMsg = GameModal.update childMsg childModel
+                let nextModel =
+                    match outMsg with
+                    | Some(GameModal.SaveGame updatedGame) -> {
+                        model with
+                            ActiveGame = updatedGame
+                            ActiveModal = None
+                      }
+                    | Some(GameModal.StartNewGame newGame) ->
+                        // TODO; I think this is where we set the EndDate of the old game as that gets persisted.
+                        {
+                            model with
+                                ActiveGame = newGame
+                                Observations = []
+                                SearchQuery = ""
+                                ActiveModal = None
+                        }
+                    | Some GameModal.Cancelled -> { model with ActiveModal = None }
+                    | None -> {
+                        model with
+                            ActiveModal = Some(GameModal updatedChild)
+                      }
+                nextModel, Cmd.map GameModalMsg cmd
             | _ -> model, Cmd.none
 
         | DeleteObservation id ->
