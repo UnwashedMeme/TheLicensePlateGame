@@ -56,6 +56,17 @@ module State =
 
             nextModel, blurActiveInputCmd
 
+        | OpenObservationDetails jurisdictionId ->
+            let count = Model.countForJurisdiction jurisdictionId model
+            if count >= 1 then
+                {
+                    model with
+                        ActiveModal = Some(ObservationDetails jurisdictionId)
+                },
+                blurActiveInputCmd
+            else
+                model, Cmd.none
+
         | SearchChanged query -> { model with SearchQuery = query }, Cmd.none
 
         | ClearSearch -> { model with SearchQuery = "" }, Cmd.none

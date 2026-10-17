@@ -25,6 +25,7 @@ type Model = {
 type Msg =
     | GameModalMsg of GameModal.Msg
     | PlateTapped of jurisdictionId: string
+    | OpenObservationDetails of jurisdictionId: string
     | SearchChanged of string
     | ClearSearch
     | ToggleScope of Scope

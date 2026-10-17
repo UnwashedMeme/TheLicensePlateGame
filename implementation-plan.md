@@ -140,13 +140,13 @@ TheLicensePlateGame/
 
 ### Phase 3: Interactive UI Modals & Menus (Elmish In-Memory)
 
-- [ ] **3.1. Long-Press Detection**
+- [x] **3.1. Long-Press Detection**
   - Implement touch/pointer long-press timer (~500ms):
     - Suppress standard browser context menu.
     - Cancel timer if finger moves/scrolls beyond 10px.
   - If count = 0: no-op.
   - If count $\ge 1$: dispatch `OpenObservationDetails(jurisdictionId)`.
-- [ ] **3.2. Observation Details & Deletion Modal**
+- [x] **3.2. Observation Details & Deletion Modal**
   - Modal header: State Name & Postal Code.
   - List observations recorded this game with formatted timestamps (e.g., `Oct 3, 2:45 PM`).
   - Provide an **X** button next to each entry:

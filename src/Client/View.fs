@@ -122,6 +122,90 @@ module View =
     // Game Board: Jurisdiction Plate Grid
     // =========================================================================
 
+    [<ReactComponent>]
+    let private PlateCard (jurisdiction: Jurisdiction) (count: int) (dispatch: Msg -> unit) =
+        let isObserved = count > 0
+        let timerRef = React.useRef<float option>(None)
+        let startPosRef = React.useRef<float * float>((0.0, 0.0))
+        let isLongPressRef = React.useRef<bool>(false)
+        let hasMovedRef = React.useRef<bool>(false)
+
+        let cancelTimer () =
+            match timerRef.current with
+            | Some t ->
+                Browser.Dom.window.clearTimeout t
+                timerRef.current <- None
+            | None -> ()
+
+        React.useEffect ((fun () -> cancelTimer), [||])
+
+        Html.button [
+            prop.key jurisdiction.Id
+            prop.className (
+                if isObserved then
+                    "plate-card is-observed"
+                else
+                    "plate-card"
+            )
+            prop.ariaLabel (sprintf "%s (%s), %d observed" jurisdiction.Name jurisdiction.Code count)
+            prop.onContextMenu (fun e -> e.preventDefault ())
+            prop.onPointerDown (fun (e: Browser.Types.PointerEvent) ->
+                if e.button = 0.0 then
+                    cancelTimer ()
+                    isLongPressRef.current <- false
+                    hasMovedRef.current <- false
+                    startPosRef.current <- (e.clientX, e.clientY)
+
+                    let timeoutId =
+                        Browser.Dom.window.setTimeout (
+                            (fun () ->
+                                timerRef.current <- None
+                                isLongPressRef.current <- true
+
+                                if count >= 1 then
+                                    dispatch (OpenObservationDetails jurisdiction.Id)),
+                            500
+                        )
+
+                    timerRef.current <- Some timeoutId)
+            prop.onPointerMove (fun (e: Browser.Types.PointerEvent) ->
+                let startX, startY = startPosRef.current
+                let dx = e.clientX - startX
+                let dy = e.clientY - startY
+
+                if (dx * dx + dy * dy) > 100.0 then
+                    cancelTimer ()
+                    hasMovedRef.current <- true)
+            prop.onPointerUp (fun _ -> cancelTimer ())
+            prop.onPointerCancel (fun _ ->
+                cancelTimer ()
+                hasMovedRef.current <- false
+                isLongPressRef.current <- false)
+            prop.onClick (fun _ ->
+                if isLongPressRef.current then
+                    isLongPressRef.current <- false
+                elif hasMovedRef.current then
+                    hasMovedRef.current <- false
+                else
+                    dispatch (PlateTapped jurisdiction.Id))
+            prop.children [
+                // Top header: Postal code on left, Count badge on right
+                Html.div [
+                    prop.className "plate-card-header"
+                    prop.children [
+                        Html.span [ prop.className "plate-card-code"; prop.text jurisdiction.Code ]
+                        Html.span [ prop.className "plate-card-badge"; prop.text (string count) ]
+                    ]
+                ]
+
+                // Centered name in lower two-thirds
+                Html.div [
+                    prop.className "plate-card-body"
+                    prop.children [ Html.span [ prop.className "plate-card-name"; prop.text jurisdiction.Name ] ]
+                ]
+            ]
+        ]
+
     let private plateGridView (model: Model) (dispatch: Msg -> unit) =
         let scopedJurisdictions = Model.jurisdictionsForScopes model.Scopes
         let searchFiltered = Search.filter model.SearchQuery scopedJurisdictions
@@ -153,35 +237,7 @@ module View =
                 prop.children [
                     for j in displayedJurisdictions do
                         let count = Model.countForJurisdiction j.Id model
-                        let isObserved = count > 0
-
-                        Html.button [
-                            prop.key j.Id
-                            prop.className (
-                                if isObserved then
-                                    "plate-card is-observed"
-                                else
-                                    "plate-card"
-                            )
-                            prop.ariaLabel (sprintf "%s (%s), %d observed" j.Name j.Code count)
-                            prop.onClick (fun _ -> dispatch (PlateTapped j.Id))
-                            prop.children [
-                                // Top header: Postal code on left, Count badge on right
-                                Html.div [
-                                    prop.className "plate-card-header"
-                                    prop.children [
-                                        Html.span [ prop.className "plate-card-code"; prop.text j.Code ]
-                                        Html.span [ prop.className "plate-card-badge"; prop.text (string count) ]
-                                    ]
-                                ]
-
-                                // Centered name in lower two-thirds
-                                Html.div [
-                                    prop.className "plate-card-body"
-                                    prop.children [ Html.span [ prop.className "plate-card-name"; prop.text j.Name ] ]
-                                ]
-                            ]
-                        ]
+                        PlateCard j count dispatch
                 ]
             ]
 
@@ -192,7 +248,7 @@ module View =
     let private drawerView (model: Model) (dispatch: Msg -> unit) =
         match model.ActiveModal with
         | Some HamburgerMenu ->
-            React.fragment [
+            React.Fragment [
                 Html.div [
                     prop.className "drawer-backdrop"
                     prop.onClick (fun _ -> dispatch CloseModal)
@@ -255,85 +311,12 @@ module View =
     // =========================================================================
 
 
-    let private observationDetailsModal (jurisdictionId: string) (model: Model) (dispatch: Msg -> unit) =
-        let jurisdictionOpt = Jurisdictions.tryFind jurisdictionId
-
-        let title =
-            match jurisdictionOpt with
-            | Some j -> sprintf "%s (%s)" j.Name j.Code
-            | None -> jurisdictionId
-
-        let observations = Model.observationsForJurisdiction jurisdictionId model
-
-        Html.div [
-            prop.className "modal-backdrop"
-            prop.onClick (fun _ -> dispatch CloseModal)
-            prop.children [
-                Html.div [
-                    prop.className "modal-card"
-                    prop.onClick (fun e -> e.stopPropagation ())
-                    prop.children [
-                        Html.div [
-                            prop.className "modal-header"
-                            prop.children [
-                                Html.h2 [ prop.className "modal-title"; prop.text title ]
-                                Html.button [
-                                    prop.className "icon-button"
-                                    prop.onClick (fun _ -> dispatch CloseModal)
-                                    prop.children [ Icons.close () ]
-                                ]
-                            ]
-                        ]
-
-                        Html.div [
-                            prop.className "modal-body"
-                            prop.children [
-                                Html.ul [
-                                    prop.className "observation-list"
-                                    prop.children [
-                                        for obs in observations do
-                                            Html.li [
-                                                prop.key (string obs.Id)
-                                                prop.className "observation-item"
-                                                prop.children [
-                                                    Html.span [
-                                                        prop.className "observation-timestamp"
-                                                        prop.text (
-                                                            obs.Timestamp.ToLocalTime().ToString("MMM d, h:mm tt")
-                                                        )
-                                                    ]
-                                                    Html.button [
-                                                        prop.className "observation-delete-button"
-                                                        prop.ariaLabel "Delete observation"
-                                                        prop.onClick (fun _ -> dispatch (DeleteObservation obs.Id))
-                                                        prop.children [ Icons.close () ]
-                                                    ]
-                                                ]
-                                            ]
-                                    ]
-                                ]
-                            ]
-                        ]
-
-                        Html.div [
-                            prop.className "modal-footer"
-                            prop.children [
-                                Html.button [
-                                    prop.className "btn btn-secondary"
-                                    prop.onClick (fun _ -> dispatch CloseModal)
-                                    prop.text "Close"
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ]
-
     let private modalsView (model: Model) (dispatch: Msg -> unit) =
         match model.ActiveModal with
         | Some(GameModal gm) -> GameModal.view gm (GameModalMsg >> dispatch)
-        | Some(ObservationDetails jId) -> observationDetailsModal jId model dispatch
+        | Some(ObservationDetails jId) ->
+            let observations = Model.observationsForJurisdiction jId model
+            ObservationModal.view jId observations (DeleteObservation >> dispatch) (fun () -> dispatch CloseModal)
         | _ -> Html.none
 
     // =========================================================================
