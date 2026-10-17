@@ -94,7 +94,7 @@ TheLicensePlateGame/
     - `Game` record: `{ Id: Guid; Name: string; Notes: string option; StartDate: DateTimeOffset; Status: GameStatus }`.
     - `Observation` record: `{ Id: Guid; GameId: Guid; JurisdictionId: string; Timestamp: DateTimeOffset; Latitude: float option; Longitude: float option }`.
   - Implement initial `Events.fs` (`GameEvent` and `StampedGameEvent`).
-- [ ] **1.4. Complete Event-Sourcing Foundation in `src/Shared/Events.fs`**
+- [x] **1.4. Complete Event-Sourcing Foundation in `src/Shared/Events.fs`**
   - Add `ObservationLocationRecorded of observationId: Guid * latitude: float * longitude: float` to `GameEvent` to support asynchronous GPS resolution.
   - Implement pure `Events.apply` and `Events.fold` functions in `Shared/Events.fs` so any sequence of `StampedGameEvent`s deterministically reconstructs active and historical game state.
 - [x] **1.5. Base HTML Shell & Stylesheet Setup**
