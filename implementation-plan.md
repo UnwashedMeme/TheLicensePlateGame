@@ -108,7 +108,7 @@ TheLicensePlateGame/
 - [x] **2.1. Client F# Project Setup (`src/Client/Client.fsproj`)**
   - Create `Client.fsproj` targeting `net10.0` and reference `src/Shared/Shared.fsproj`.
   - Add core NuGet packages: `Fable.Core` (5.4+), `Fable.Elmish` (5.0+), `Feliz` (3.3+), `Fable.Browser.Dom` (2.20+), `Fable.Browser.IndexedDB` (2.2+).
-- [ ] **2.2. Migrate Client Architecture to Full `Feliz.UseElmish`**
+- [x] **2.2. Migrate Client Architecture to Full `Feliz.UseElmish`**
   - Replace `Fable.Elmish.React` with `Feliz.UseElmish` (5.0+) in `Client.fsproj`.
   - Update `App.fs` to mount a `[<ReactComponent>]` root (`View.App`) using `ReactDOM.createRoot` and `React.useElmish(State.init, State.update)`.
   - Refactor `GameModal.fs` into a self-contained `[<ReactComponent>]` using `React.useElmish` internally for draft form inputs (`Name`, `Notes`), invoking `onSave` / `onCancel` callbacks on completion instead of routing `GameModalMsg` and `OutMsg` through the root `Model`/`State`.

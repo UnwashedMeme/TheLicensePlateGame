@@ -108,33 +108,24 @@ module State =
 
         | CloseModal -> { model with ActiveModal = None }, Cmd.none
 
-        | GameModalMsg childMsg ->
-            match model.ActiveModal with
-            | Some(GameModal childModel) ->
-                let updatedChild, cmd, outMsg = GameModal.update childMsg childModel
-                let nextModel =
-                    match outMsg with
-                    | Some(GameModal.SaveGame updatedGame) -> {
-                        model with
-                            ActiveGame = updatedGame
-                            ActiveModal = None
-                      }
-                    | Some(GameModal.StartNewGame newGame) ->
-                        // TODO; I think this is where we set the EndDate of the old game as that gets persisted.
-                        {
-                            model with
-                                ActiveGame = newGame
-                                Observations = []
-                                SearchQuery = ""
-                                ActiveModal = None
-                        }
-                    | Some GameModal.Cancelled -> { model with ActiveModal = None }
-                    | None -> {
-                        model with
-                            ActiveModal = Some(GameModal updatedChild)
-                      }
-                nextModel, Cmd.map GameModalMsg cmd
-            | _ -> model, Cmd.none
+        | GameSaved updatedGame ->
+            {
+                model with
+                    ActiveGame = updatedGame
+                    ActiveModal = None
+            },
+            Cmd.none
+
+        | NewGameStarted newGame ->
+            // TODO; I think this is where we set the EndDate of the old game as that gets persisted.
+            {
+                model with
+                    ActiveGame = newGame
+                    Observations = []
+                    SearchQuery = ""
+                    ActiveModal = None
+            },
+            Cmd.none
 
         | DeleteObservation id ->
             let updatedObservations = model.Observations |> List.filter (fun o -> o.Id <> id)

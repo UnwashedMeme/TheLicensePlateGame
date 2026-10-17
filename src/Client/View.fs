@@ -3,6 +3,7 @@ namespace TheLicensePlateGame.Client
 open System
 open Browser.Types
 open Feliz
+open Feliz.UseElmish
 open TheLicensePlateGame.Shared
 
 module View =
@@ -313,7 +314,8 @@ module View =
 
     let private modalsView (model: Model) (dispatch: Msg -> unit) =
         match model.ActiveModal with
-        | Some(GameModal gm) -> GameModal.view gm (GameModalMsg >> dispatch)
+        | Some(GameModal gm) ->
+            GameModal.Modal gm (GameSaved >> dispatch) (NewGameStarted >> dispatch) (fun () -> dispatch CloseModal)
         | Some(ObservationDetails jId) ->
             let observations = Model.observationsForJurisdiction jId model
             ObservationModal.view jId observations (DeleteObservation >> dispatch) (fun () -> dispatch CloseModal)
@@ -336,3 +338,9 @@ module View =
                 modalsView model dispatch
             ]
         ]
+
+    /// Root React component: runs the application's Elmish loop via `React.useElmish`.
+    [<ReactComponent>]
+    let App () =
+        let model, dispatch = React.useElmish (State.init, State.update, [||])
+        root model dispatch

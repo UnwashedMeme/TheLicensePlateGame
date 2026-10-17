@@ -23,7 +23,8 @@ type Model = {
 
 /// Elmish messages representing all user and system events.
 type Msg =
-    | GameModalMsg of GameModal.Msg
+    | GameSaved of Game
+    | NewGameStarted of Game
     | PlateTapped of jurisdictionId: string
     | OpenObservationDetails of jurisdictionId: string
     | SearchChanged of string

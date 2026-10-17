@@ -3,6 +3,7 @@ namespace TheLicensePlateGame.Client
 open System
 open Elmish
 open Feliz
+open Feliz.UseElmish
 open Browser.Types
 
 
@@ -10,20 +11,15 @@ open TheLicensePlateGame.Shared
 
 module GameModal =
 
+    /// Draft-editing messages. Saving and cancelling are reported to the parent via callbacks.
     type Msg =
         | GameNameChanged of string
         | GameNotesChanged of string
-        | Save
-        | Cancel
 
+    /// The in-flight draft of the game being edited or created.
     type Model =
         | EditGame of Game: Game
         | NewGame of Game: Game
-
-    type OutMsg =
-        | SaveGame of Game
-        | StartNewGame of Game
-        | Cancelled
 
     let private cleanGame (game: Game) (fallbackName: string) : Game =
         let cleanedName =
@@ -43,7 +39,9 @@ module GameModal =
                 Notes = cleanedNotes
         }
 
-    let update (msg: Msg) (model: Model) : Model * Cmd<Msg> * OutMsg option =
+    let private init (initial: Model) : Model * Cmd<Msg> = initial, Cmd.none
+
+    let private update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
         match msg with
         | GameNameChanged name ->
             let nextModel =
@@ -51,7 +49,7 @@ module GameModal =
                 | EditGame game -> EditGame { game with Name = name }
                 | NewGame game -> NewGame { game with Name = name }
 
-            nextModel, Cmd.none, None
+            nextModel, Cmd.none
 
         | GameNotesChanged notes ->
             let nextModel =
@@ -59,24 +57,17 @@ module GameModal =
                 | EditGame game -> EditGame { game with Notes = Some notes }
                 | NewGame game -> NewGame { game with Notes = Some notes }
 
-            nextModel, Cmd.none, None
+            nextModel, Cmd.none
 
-        | Save ->
-            match model with
-            | EditGame game ->
-                let updated = cleanGame game game.Name
-                model, Cmd.none, Some(SaveGame updated)
-            | NewGame game ->
-                let fallback = sprintf "Trip - %s" (DateTimeOffset.Now.ToString("MMM d, yyyy"))
-                let updated = cleanGame game fallback
-                model, Cmd.none, Some(StartNewGame updated)
-
-        | Cancel -> model, Cmd.none, Some Cancelled
-
-    let private editGameModal (game: Game) (dispatch: Msg -> unit) =
+    let private editGameModal
+        (game: Game)
+        (dispatch: Msg -> unit)
+        (onSave: unit -> unit)
+        (onCancel: unit -> unit)
+        =
         Html.div [
             prop.className "modal-backdrop"
-            prop.onClick (fun _ -> dispatch Cancel)
+            prop.onClick (fun _ -> onCancel ())
             prop.children [
                 Html.div [
                     prop.className "modal-card"
@@ -88,7 +79,7 @@ module GameModal =
                                 Html.h2 [ prop.className "modal-title"; prop.text "Edit Game Info" ]
                                 Html.button [
                                     prop.className "icon-button"
-                                    prop.onClick (fun _ -> dispatch Cancel)
+                                    prop.onClick (fun _ -> onCancel ())
                                     prop.children [ Icons.close () ]
                                 ]
                             ]
@@ -130,12 +121,12 @@ module GameModal =
                             prop.children [
                                 Html.button [
                                     prop.className "btn btn-secondary"
-                                    prop.onClick (fun _ -> dispatch Cancel)
+                                    prop.onClick (fun _ -> onCancel ())
                                     prop.text "Cancel"
                                 ]
                                 Html.button [
                                     prop.className "btn btn-primary"
-                                    prop.onClick (fun _ -> dispatch Save)
+                                    prop.onClick (fun _ -> onSave ())
                                     prop.text "Save"
                                 ]
                             ]
@@ -145,10 +136,15 @@ module GameModal =
             ]
         ]
 
-    let private newGameModal (game: Game) (dispatch: Msg -> unit) =
+    let private newGameModal
+        (game: Game)
+        (dispatch: Msg -> unit)
+        (onSave: unit -> unit)
+        (onCancel: unit -> unit)
+        =
         Html.div [
             prop.className "modal-backdrop"
-            prop.onClick (fun _ -> dispatch Cancel)
+            prop.onClick (fun _ -> onCancel ())
             prop.children [
                 Html.div [
                     prop.className "modal-card"
@@ -160,7 +156,7 @@ module GameModal =
                                 Html.h2 [ prop.className "modal-title"; prop.text "Start New Game" ]
                                 Html.button [
                                     prop.className "icon-button"
-                                    prop.onClick (fun _ -> dispatch Cancel)
+                                    prop.onClick (fun _ -> onCancel ())
                                     prop.children [ Icons.close () ]
                                 ]
                             ]
@@ -205,12 +201,12 @@ module GameModal =
                             prop.children [
                                 Html.button [
                                     prop.className "btn btn-secondary"
-                                    prop.onClick (fun _ -> dispatch Cancel)
+                                    prop.onClick (fun _ -> onCancel ())
                                     prop.text "Cancel"
                                 ]
                                 Html.button [
                                     prop.className "btn btn-primary"
-                                    prop.onClick (fun _ -> dispatch Save)
+                                    prop.onClick (fun _ -> onSave ())
                                     prop.text "Start Game"
                                 ]
                             ]
@@ -220,7 +216,23 @@ module GameModal =
             ]
         ]
 
-    let view (model: Model) (dispatch: Msg -> unit) =
+    /// Self-contained modal that owns its draft state via `React.useElmish`.
+    /// Reports completion through callbacks, so the parent never sees draft keystrokes.
+    [<ReactComponent>]
+    let Modal
+        (initial: Model)
+        (onSave: Game -> unit)
+        (onStartNew: Game -> unit)
+        (onCancel: unit -> unit)
+        =
+        let model, dispatch = React.useElmish ((fun () -> init initial), update, [||])
+
         match model with
-        | EditGame game -> editGameModal game dispatch
-        | NewGame game -> newGameModal game dispatch
+        | EditGame game ->
+            let save () = onSave (cleanGame game game.Name)
+            editGameModal game dispatch save onCancel
+        | NewGame game ->
+            let save () =
+                let fallback = sprintf "Trip - %s" (DateTimeOffset.Now.ToString("MMM d, yyyy"))
+                onStartNew (cleanGame game fallback)
+            newGameModal game dispatch save onCancel

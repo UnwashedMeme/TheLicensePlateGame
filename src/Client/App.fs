@@ -1,9 +1,10 @@
 module TheLicensePlateGame.Client.App
 
-open Elmish
-open Elmish.React
+open Browser.Dom
+open Feliz
 
-// Mount the Elmish application to the HTML root container
-Program.mkProgram State.init State.update View.root
-|> Program.withReactSynchronous "elmish-app"
-|> Program.run
+// Mount the React root; the Elmish loop itself runs inside View.App via React.useElmish.
+let private container = document.getElementById "elmish-app"
+let private root = ReactDOM.createRoot container
+
+root.render (View.App())
