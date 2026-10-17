@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "dotnet fable watch src/Client -o .fable-build -s --run pnpm exec vite --host 0.0.0.0",
     "build": "dotnet build && dotnet fable src/Client -o .fable-build -s && vite build",
+    "deploy": "BASE_PATH=/TheLicensePlateGame/ pnpm build && touch dist/.nojekyll",
     "preview": "vite preview",
     "test": "echo \"No test suite configured yet. (Will be added in a later phase)\" && exit 0",
     "format": "dotnet fantomas src",
