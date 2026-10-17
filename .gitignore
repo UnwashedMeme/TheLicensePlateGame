@@ -16,8 +16,9 @@ dist-ssr/
 *.local
 
 # --- Fable Compiler Artifacts ---
-# Fable compiler cache and generated JavaScript files
+# Fable compiler cache and out-of-source generated JavaScript (+ source maps)
 .fable/
+.fable-build/
 fable_modules/
 *.fs.js
 *.fs.js.map
@@ -55,4 +56,3 @@ Thumbs.db
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-*.js

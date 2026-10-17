@@ -79,7 +79,7 @@ TheLicensePlateGame/
   - Initialize local dotnet tool manifest (`.config/dotnet-tools.json`) with `fable` (5.22+) and `fantomas` (8.0+).
   - Initialize `package.json` and install modern tooling via pnpm: `vite` (^8.3+), `@vitejs/plugin-react` (^6.1+), `react` (^19.3+), `react-dom` (^19.3+).
   - Create `vite.config.js` and `.gitignore`.
-- [ ] **1.2. Refine Build Pipeline for Out-of-Source `.fable-build` & Source Maps**
+- [x] **1.2. Refine Build Pipeline for Out-of-Source `.fable-build` & Source Maps**
   - Update `package.json` scripts (`dev` and `build`) to compile Fable with `-s -o .fable-build` so source maps are enabled and `src/` stays 100% pure F#.
   - Add `format` script (`dotnet tool run fantomas src`) and `clean` script removing `.fable-build/` and any legacy in-place `.fs.js` artifacts.
   - Update `index.html` script entrypoint to `/.fable-build/App.js`.
