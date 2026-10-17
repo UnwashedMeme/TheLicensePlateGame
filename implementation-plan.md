@@ -198,10 +198,10 @@ TheLicensePlateGame/
 
 ### Phase 5: App Startup Flow & Lifecycle Management (`State.fs`)
 
-- [ ] **5.1. Startup Event Loading in `State.init` (`State.fs`)**
+- [x] **5.1. Startup Event Loading in `State.init` (`State.fs`)**
   - Keep `State.init ()` initializing a default in-memory `initialGame = Game.New()` and seeding `initialEventState` (`Games = Map.ofList [ initialGame.Id, initialGame ]`) so the Game Board renders immediately on first paint with zero loading spinners or layout shift.
   - Update `State.init ()` to return `initialModel, Storage.loadAllEvents EventsLoaded` (replacing `Cmd.none`) so IndexedDB event replay is triggered automatically on mount.
-- [ ] **5.2. First-Launch Bootstrap & Event Replay in `State.update` (`State.fs`)**
+- [x] **5.2. First-Launch Bootstrap & Event Replay in `State.update` (`State.fs`)**
   - Update the `EventsLoaded (Ok events)` transition in `State.update` to handle both existing and brand-new event stores deterministically:
     1. Fold the loaded events chronologically via `let foldedState = Events.foldOrdered events`.
     2. Inspect `Events.activeGame foldedState`:
@@ -211,7 +211,7 @@ TheLicensePlateGame/
          - Seed `EventState = foldedState` (preserving any completed historical games and their observations) and call `recordEvents [ model.ActiveGame.Id, GameStarted model.ActiveGame ] { model with EventState = foldedState }`.
          - *Rationale*: `Events.apply` requires a `GameStarted` entry in `EventState.Games` before `GameUpdated` or `GameEnded` can modify that game, and subsequent page reloads rely on `GameStarted` in IndexedDB to reconstruct `Events.activeGame`. Persisting `GameStarted model.ActiveGame` on first launch anchors all subsequent `PlateObserved`, `GameUpdated`, and `GameEnded` events in the `"events"` store.
   - Ensure `EventsLoaded (Error err)` logs the error via `Browser.Dom.console.error` while keeping the in-memory `initialGame` and `initialEventState` intact as a graceful fallback if IndexedDB is unavailable or blocked.
-- [ ] **5.3. End-to-End Session Lifecycle & "New Game" Transition Verification**
+- [x] **5.3. End-to-End Session Lifecycle & "New Game" Transition Verification**
   - **First Launch Bootstrap**: Verify that launching with an empty IndexedDB creates `LicensePlateGameDB` (v1) $\rightarrow$ `"events"` and immediately persists a `GameStarted` event for the default `Trip - MMM d, yyyy` session.
   - **Gameplay & Reload Replay**: Verify that tapping plates (`PlateObserved`), deleting individual observations via long-press (`ObservationDeleted`), and editing game metadata (`GameUpdated`) survive full browser reloads with identical badge counts, progress counters, and metadata.
   - **"New Game" Atomic Transition**: Verify that confirming "New Game" in `GameModal` atomically persists `[ GameEnded(oldGame.Id); GameStarted(newGame) ]` in a single IndexedDB `readwrite` transaction, resets the active board to `0 / 61` for `newGame`, preserves all historical events from `oldGame` in `"events"`, and reloads cleanly into `newGame`.
@@ -220,10 +220,10 @@ TheLicensePlateGame/
 
 ### Phase 6: PWA, Service Worker & Offline Capability (`vite-plugin-pwa`)
 
-- [ ] **6.1. Generate Raster PWA Icons & Update HTML Shell (`public/icons/`, `index.html`)**
+- [x] **6.1. Generate Raster PWA Icons & Update HTML Shell (`public/icons/`, `index.html`)**
   - Create `public/icons/` and generate `192x192` (`public/icons/icon-192.png`) and `512x512` (`public/icons/icon-512.png`) PNG icons rendered from `public/favicon.svg` (matching the Solarized Dark `#002b36` / `#073642` license plate motif with `#2aa198` cyan accents).
   - Update `index.html` so `<link rel="apple-touch-icon" href="/icons/icon-192.png" />` points to the raster 192x192 PNG instead of `/favicon.svg` (required by iOS Safari for home-screen icons).
-- [ ] **6.2. Install & Configure `vite-plugin-pwa` (`package.json`, `vite.config.js`)**
+- [x] **6.2. Install & Configure `vite-plugin-pwa` (`package.json`, `vite.config.js`)**
   - Add `vite-plugin-pwa` as a devDependency in `package.json` (`pnpm add -D vite-plugin-pwa`, adding `pnpm` peerDependency overrides if required for Vite 8).
   - Configure `VitePWA` in `vite.config.js`:
     - **Service Worker Registration**: `registerType: 'autoUpdate'` and `injectRegister: 'auto'` so Vite automatically injects `registerSW.js` into the built `index.html` without manual registration code in F#.
@@ -238,7 +238,7 @@ TheLicensePlateGame/
       - `start_url: '/'`, `scope: '/'`, `display: 'standalone'`
       - `theme_color: '#002b36'`, `background_color: '#002b36'` (matching `--color-bg-base` in `styles.css` and `<meta name="theme-color">`)
       - `icons`: `/icons/icon-192.png` (`192x192`, `image/png`, `purpose: 'any maskable'`), `/icons/icon-512.png` (`512x512`, `image/png`, `purpose: 'any maskable'`), and `/favicon.svg` (`any`, `image/svg+xml`).
-- [ ] **6.3. Production Build & Working Offline Baseline Verification**
+- [x] **6.3. Production Build & Working Offline Baseline Verification**
   - Run `pnpm build` and confirm `dist/` emits `manifest.webmanifest`, `sw.js`, `workbox-*.js`, `registerSW.js`, `icons/icon-192.png`, `icons/icon-512.png`, and precached JS/CSS bundles cleanly.
   - Serve the production bundle via `pnpm preview` and verify the complete working baseline:
     - Service Worker registers, activates, and precaches all assets with zero console errors.

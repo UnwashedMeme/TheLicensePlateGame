@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "dotnet fable watch src/Client -o .fable-build -s --run pnpm exec vite",
+    "dev": "dotnet fable watch src/Client -o .fable-build -s --run pnpm exec vite --host 0.0.0.0",
     "build": "dotnet build && dotnet fable src/Client -o .fable-build -s && vite build",
     "preview": "vite preview",
     "test": "echo \"No test suite configured yet. (Will be added in a later phase)\" && exit 0",
@@ -17,6 +17,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.1.2",
-    "vite": "^8.3.4"
+    "sharp": "^0.35.5",
+    "vite": "^8.3.4",
+    "vite-plugin-pwa": "^2.0.0"
   }
 }

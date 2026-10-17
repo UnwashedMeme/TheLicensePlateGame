@@ -43,7 +43,7 @@ module State =
         let persistCmd = Storage.appendEvents stampedEvents EventsPersisted
         nextModel, persistCmd
 
-    /// Initialize the default in-memory game state.
+    /// Initialize the default in-memory game state and trigger event-store replay.
     let init () : Model * Cmd<Msg> =
         let initialGame = Game.New()
         let initialEventState = {
@@ -61,27 +61,32 @@ module State =
             EventState = initialEventState
         }
 
-        initialModel, Cmd.none
+        initialModel, Storage.loadAllEvents EventsLoaded
 
     /// Pure MVU update function handling all application transitions.
     let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
         match msg with
         | EventsLoaded(Ok events) ->
-            if List.isEmpty events then
-                model, Cmd.none
-            else
-                let foldedState = Events.foldOrdered events
-                match Events.activeGame foldedState with
-                | Some active ->
-                    let observations = Events.observationsFor active.Id foldedState
-                    {
-                        model with
-                            EventState = foldedState
-                            ActiveGame = active
-                            Observations = observations
-                    },
-                    Cmd.none
-                | None -> { model with EventState = foldedState }, Cmd.none
+            let foldedState = Events.foldOrdered events
+
+            match Events.activeGame foldedState with
+            | Some active ->
+                let observations = Events.observationsFor active.Id foldedState
+
+                {
+                    model with
+                        EventState = foldedState
+                        ActiveGame = active
+                        Observations = observations
+                },
+                Cmd.none
+            | None ->
+                // First launch (empty store) or all historical games in storage have been completed.
+                // Seed EventState with foldedState to keep historical games/observations, and
+                // record & persist GameStarted for the initial ActiveGame so that subsequent events
+                // (e.g. PlateObserved, GameUpdated, GameEnded) are anchored to a persisted game.
+                let nextModel = { model with EventState = foldedState }
+                recordEvents [ model.ActiveGame.Id, GameStarted model.ActiveGame ] nextModel
 
         | EventsLoaded(Error err) ->
             Browser.Dom.console.error ($"Failed to load events from IndexedDB: {err}")
