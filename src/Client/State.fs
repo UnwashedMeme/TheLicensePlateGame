@@ -20,9 +20,36 @@ module State =
     let private blurActiveInputCmd: Cmd<Msg> =
         Cmd.ofEffect (fun _ -> blurActiveElement ())
 
+    /// Stamps domain events, folds them immediately into EventState (optimistic UI),
+    /// and returns a command to persist them asynchronously in IndexedDB.
+    let private recordEvents (events: (Guid * GameEvent) list) (model: Model) : Model * Cmd<Msg> =
+        let now = DateTimeOffset.UtcNow
+        let stampedEvents = events |> List.map (fun (gId, ev) -> Events.stamp gId now ev)
+
+        let nextEventState = stampedEvents |> List.fold Events.apply model.EventState
+
+        let nextActiveGame =
+            Events.activeGame nextEventState |> Option.defaultValue model.ActiveGame
+
+        let nextObservations = Events.observationsFor nextActiveGame.Id nextEventState
+
+        let nextModel = {
+            model with
+                EventState = nextEventState
+                ActiveGame = nextActiveGame
+                Observations = nextObservations
+        }
+
+        let persistCmd = Storage.appendEvents stampedEvents EventsPersisted
+        nextModel, persistCmd
+
     /// Initialize the default in-memory game state.
     let init () : Model * Cmd<Msg> =
         let initialGame = Game.New()
+        let initialEventState = {
+            Events.empty with
+                Games = Map.ofList [ initialGame.Id, initialGame ]
+        }
 
         let initialModel: Model = {
             ActiveGame = initialGame
@@ -31,6 +58,7 @@ module State =
             SearchQuery = ""
             HideObserved = false
             ActiveModal = None
+            EventState = initialEventState
         }
 
         initialModel, Cmd.none
@@ -38,6 +66,33 @@ module State =
     /// Pure MVU update function handling all application transitions.
     let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
         match msg with
+        | EventsLoaded(Ok events) ->
+            if List.isEmpty events then
+                model, Cmd.none
+            else
+                let foldedState = Events.foldOrdered events
+                match Events.activeGame foldedState with
+                | Some active ->
+                    let observations = Events.observationsFor active.Id foldedState
+                    {
+                        model with
+                            EventState = foldedState
+                            ActiveGame = active
+                            Observations = observations
+                    },
+                    Cmd.none
+                | None -> { model with EventState = foldedState }, Cmd.none
+
+        | EventsLoaded(Error err) ->
+            Browser.Dom.console.error ($"Failed to load events from IndexedDB: {err}")
+            model, Cmd.none
+
+        | EventsPersisted(Ok()) -> model, Cmd.none
+
+        | EventsPersisted(Error err) ->
+            Browser.Dom.console.error ($"Failed to persist events to IndexedDB: {err}")
+            model, Cmd.none
+
         | PlateTapped jurisdictionId ->
             let newObservation: Observation = {
                 Id = Guid.NewGuid()
@@ -48,13 +103,10 @@ module State =
                 Longitude = None
             }
 
-            let nextModel = {
-                model with
-                    Observations = newObservation :: model.Observations
-                    SearchQuery = ""
-            }
+            let nextModel, persistCmd =
+                recordEvents [ model.ActiveGame.Id, PlateObserved newObservation ] model
 
-            nextModel, blurActiveInputCmd
+            { nextModel with SearchQuery = "" }, Cmd.batch [ persistCmd; blurActiveInputCmd ]
 
         | OpenObservationDetails jurisdictionId ->
             let count = Model.countForJurisdiction jurisdictionId model
@@ -109,39 +161,40 @@ module State =
         | CloseModal -> { model with ActiveModal = None }, Cmd.none
 
         | GameSaved updatedGame ->
-            {
-                model with
-                    ActiveGame = updatedGame
-                    ActiveModal = None
-            },
-            Cmd.none
+            let nextModel, persistCmd =
+                recordEvents [ updatedGame.Id, GameUpdated updatedGame ] model
+
+            { nextModel with ActiveModal = None }, persistCmd
 
         | NewGameStarted newGame ->
-            // TODO; I think this is where we set the EndDate of the old game as that gets persisted.
+            let events = [
+                model.ActiveGame.Id, GameEnded model.ActiveGame.Id
+                newGame.Id, GameStarted newGame
+            ]
+            let nextModel, persistCmd = recordEvents events model
+
             {
-                model with
-                    ActiveGame = newGame
-                    Observations = []
+                nextModel with
                     SearchQuery = ""
                     ActiveModal = None
             },
-            Cmd.none
+            persistCmd
 
         | DeleteObservation id ->
-            let updatedObservations = model.Observations |> List.filter (fun o -> o.Id <> id)
+            let nextModel, persistCmd =
+                recordEvents [ model.ActiveGame.Id, ObservationDeleted id ] model
 
             // If an observation details modal is currently open, check if any entries remain
             let nextModal =
-                match model.ActiveModal with
+                match nextModel.ActiveModal with
                 | Some(ObservationDetails jId) ->
                     let hasRemaining =
-                        updatedObservations |> List.exists (fun o -> o.JurisdictionId = jId)
+                        nextModel.Observations |> List.exists (fun o -> o.JurisdictionId = jId)
                     if hasRemaining then Some(ObservationDetails jId) else None
                 | other -> other
 
             {
-                model with
-                    Observations = updatedObservations
+                nextModel with
                     ActiveModal = nextModal
             },
-            Cmd.none
+            persistCmd

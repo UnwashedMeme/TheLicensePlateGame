@@ -19,10 +19,13 @@ type Model = {
     SearchQuery: string
     HideObserved: bool
     ActiveModal: ModalType option
+    EventState: EventState
 }
 
 /// Elmish messages representing all user and system events.
 type Msg =
+    | EventsLoaded of Result<StampedGameEvent list, string>
+    | EventsPersisted of Result<unit, string>
     | GameSaved of Game
     | NewGameStarted of Game
     | PlateTapped of jurisdictionId: string

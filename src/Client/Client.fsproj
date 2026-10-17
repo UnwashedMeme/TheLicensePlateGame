@@ -12,6 +12,7 @@
     <PackageReference Include="Fable.Browser.Dom" Version="2.20.0" />
     <PackageReference Include="Fable.Browser.IndexedDB" Version="2.2.0" />
     <PackageReference Include="Feliz.UseElmish" Version="5.0.0" />
+    <PackageReference Include="Thoth.Json" Version="10.5.2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Icons.fs" />
@@ -19,6 +20,7 @@
     <Compile Include="GameModal.fs" />
     <Compile Include="ObservationModal.fs" />
     <Compile Include="Types.fs" />
+    <Compile Include="Storage.fs" />
     <Compile Include="Search.fs" />
     <Compile Include="State.fs" />
     <Compile Include="View.fs" />

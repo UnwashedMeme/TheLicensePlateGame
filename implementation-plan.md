@@ -148,54 +148,116 @@ TheLicensePlateGame/
 
 ### Phase 4: Event-Sourced Persistence Layer (`Storage.fs`)
 
-- [ ] **4.1. Add `Thoth.Json` & Event Codecs**
-  - Add `Thoth.Json` NuGet package to `src/Client/Client.fsproj`.
-  - Implement encoders and decoders in `Storage.fs` for `Game`, `Observation`, `GameEvent`, and `StampedGameEvent` so F# unions, `option`, `Guid`, and `DateTimeOffset` round-trip losslessly.
-- [ ] **4.2. IndexedDB Event Store Interop (`Storage.fs`)**
-  - Open `LicensePlateGameDB` with an `events` object store (keyPath: `id`, indexes: `gameId`, `timestamp`).
-  - Expose clean Elmish `Cmd` helpers:
-    - `loadAllEvents`: reads all persisted `StampedGameEvent` records ordered by timestamp on startup.
-    - `appendEvents`: asynchronously persists newly emitted `StampedGameEvent` records whenever user actions occur.
-- [ ] **4.3. Connect Elmish `State.update` to Event Sourcing**
-  - Update `State.update` transitions (`PlateTapped`, `DeleteObservation`, `SaveGame`, `StartNewGame`) to construct `StampedGameEvent` values, fold them into the in-memory `Model` immediately (optimistic UI update), and dispatch `Storage.appendEvents` in the background.
+- [x] **4.1. Add `Thoth.Json` & Automatic Event Serialization (`Storage.fs`)**
+  - Add `Thoth.Json` (`10.5.2`) NuGet package to `src/Client/Client.fsproj`.
+  - Implement serialization helpers in `Storage.fs` using `Encode.Auto.toString` and `Decode.Auto.fromString` (`Extra.empty`) for `Game`, `Observation`, `GameEvent`, and `StampedGameEvent` so F# discriminated unions, `option` fields, `Guid`, and `DateTimeOffset` round-trip losslessly without manual codec boilerplate.
+- [x] **4.2. IndexedDB Event Store Interop (`Storage.fs`)**
+  - **Database & Schema Initialization**:
+    - Open IndexedDB database `"LicensePlateGameDB"` (version `1`) via `Browser.Dom.window.indexedDB`.
+    - In `onupgradeneeded`, create the `"events"` object store with `keyPath = "id"` (`autoIncrement = false`) and two non-unique indexes:
+      - `"gameId"` (`keyPath = "gameId"`) for per-game queries.
+      - `"timestamp"` (`keyPath = "timestamp"`) for chronological ordering.
+  - **Stored Record Envelope**:
+    - Because IndexedDB evaluates `keyPath` and index paths directly on stored JS objects (and throws `DataError` if passed a raw JSON string), wrap each `StampedGameEvent` in a plain JS envelope object before calling `store.put`:
+      ```text
+      {
+        id:        string stamped.Id,                              // Primary key (idempotent put)
+        gameId:    string stamped.GameId,                          // Indexed by game session
+        timestamp: float (stamped.Timestamp.ToUnixTimeMilliseconds()), // Numeric epoch ms for chronological index sorting
+        json:      Storage.encodeStampedEvent stamped              // Lossless Thoth.Json payload
+      }
+      ```
+  - **Low-Level Callback / Async Operations**:
+    - `readAllEvents : (Result<StampedGameEvent list, string> -> unit) -> unit`:
+      - Opens a `"readonly"` transaction on `"events"`, reads all records ordered by the `"timestamp"` index (`index("timestamp").getAll()`), decodes each row's `.json` field via `Storage.decodeStampedEvent`, and returns the resulting `StampedGameEvent list`.
+    - `writeEvents : StampedGameEvent list -> (Result<unit, string> -> unit) -> unit`:
+      - Opens a single atomic `"readwrite"` transaction on `"events"`, calls `store.put(envelope)` for each event in the list, and completes on `transaction.oncomplete` (or surfaces `transaction.onerror`).
+    - Handle missing/disabled `indexedDB` or request errors gracefully by returning `Error message` without throwing uncaught exceptions.
+  - **Elmish `Cmd` Helpers**:
+    - `loadAllEvents : (Result<StampedGameEvent list, string> -> 'msg) -> Cmd<'msg>`: wraps `readAllEvents` in `Cmd.ofEffect`.
+    - `appendEvents : StampedGameEvent list -> (Result<unit, string> -> 'msg) -> Cmd<'msg>`: wraps `writeEvents` in `Cmd.ofEffect` (returns `Cmd.none` when the event list is empty).
+- [x] **4.3. Connect Elmish `Types.fs` & `State.fs` to Event Sourcing**
+  - **Model & Msg Updates (`Types.fs`)**:
+    - Add storage result messages to `Msg`:
+      - `EventsLoaded of Result<StampedGameEvent list, string>`
+      - `EventsPersisted of Result<unit, string>`
+    - Store `EventState: EventState` (or synchronize `ActiveGame` and `Observations` via `Events.apply`) on `Model`.
+  - **Optimistic Event Application & Persistence Helper (`State.fs`)**:
+    - Implement a helper `recordEvents (events: (Guid * GameEvent) list) (model: Model) : Model * Cmd<Msg>` that:
+      1. Stamps each `(gameId, event)` with `Events.stamp gameId DateTimeOffset.UtcNow event`.
+      2. Folds the stamped events immediately into the in-memory model via `Events.apply` so UI updates remain instantaneous.
+      3. Returns `Storage.appendEvents stampedEvents EventsPersisted` to persist the batch asynchronously in IndexedDB.
+  - **Wire User Actions in `State.update` to Emit Domain Events**:
+    - `PlateTapped jurisdictionId` $\rightarrow$ emits `PlateObserved newObservation` for `model.ActiveGame.Id` (plus `blurActiveInputCmd`).
+    - `DeleteObservation obsId` $\rightarrow$ emits `ObservationDeleted obsId` (and closes `ObservationDetails` modal if count for that jurisdiction reaches 0).
+    - `GameSaved updatedGame` $\rightarrow$ emits `GameUpdated updatedGame` and closes modal.
+    - `NewGameStarted newGame` $\rightarrow$ emits `[ (model.ActiveGame.Id, GameEnded model.ActiveGame.Id); (newGame.Id, GameStarted newGame) ]` atomically, switches `ActiveGame` to `newGame` with `Observations = []`, and closes modal.
+    - `EventsPersisted (Error err)` $\rightarrow$ logs warning to `console.error` without disrupting gameplay.
 
 ---
 
-### Phase 5: App Startup Flow & Lifecycle Management
+### Phase 5: App Startup Flow & Lifecycle Management (`State.fs`)
 
-- [ ] **5.1. First-Launch Auto-Start & Event Replay**
-  - On app launch (`State.init`), dispatch `Storage.loadAllEvents`.
-  - When `EventsLoaded` arrives:
-    - If events exist, fold them via `Events.fold` to restore the active `Game` and its `Observations`.
-    - If no active game exists (first launch), automatically emit and persist a `GameStarted` event for a default session (e.g. `Trip - Oct 17, 2026`).
-- [ ] **5.2. Full "New Game" Event Transition**
-  - When user confirms "New Game":
-    - Emit both `GameEnded(oldGame.Id)` and `GameStarted(newGame)` events in a single atomic batch.
-    - Persist both events to IndexedDB while resetting the active board to a clean slate without losing historical game events.
+- [ ] **5.1. Startup Event Loading in `State.init` (`State.fs`)**
+  - Keep `State.init ()` initializing a default in-memory `initialGame = Game.New()` and seeding `initialEventState` (`Games = Map.ofList [ initialGame.Id, initialGame ]`) so the Game Board renders immediately on first paint with zero loading spinners or layout shift.
+  - Update `State.init ()` to return `initialModel, Storage.loadAllEvents EventsLoaded` (replacing `Cmd.none`) so IndexedDB event replay is triggered automatically on mount.
+- [ ] **5.2. First-Launch Bootstrap & Event Replay in `State.update` (`State.fs`)**
+  - Update the `EventsLoaded (Ok events)` transition in `State.update` to handle both existing and brand-new event stores deterministically:
+    1. Fold the loaded events chronologically via `let foldedState = Events.foldOrdered events`.
+    2. Inspect `Events.activeGame foldedState`:
+       - **Existing Active Game found (`Some active`)**:
+         - Hydrate `model` with `EventState = foldedState`, `ActiveGame = active`, and `Observations = Events.observationsFor active.Id foldedState`, returning `Cmd.none`.
+       - **No Active Game found (`None` — either first launch with `events = []`, or all historical games in storage have `Status = Completed`)**:
+         - Seed `EventState = foldedState` (preserving any completed historical games and their observations) and call `recordEvents [ model.ActiveGame.Id, GameStarted model.ActiveGame ] { model with EventState = foldedState }`.
+         - *Rationale*: `Events.apply` requires a `GameStarted` entry in `EventState.Games` before `GameUpdated` or `GameEnded` can modify that game, and subsequent page reloads rely on `GameStarted` in IndexedDB to reconstruct `Events.activeGame`. Persisting `GameStarted model.ActiveGame` on first launch anchors all subsequent `PlateObserved`, `GameUpdated`, and `GameEnded` events in the `"events"` store.
+  - Ensure `EventsLoaded (Error err)` logs the error via `Browser.Dom.console.error` while keeping the in-memory `initialGame` and `initialEventState` intact as a graceful fallback if IndexedDB is unavailable or blocked.
+- [ ] **5.3. End-to-End Session Lifecycle & "New Game" Transition Verification**
+  - **First Launch Bootstrap**: Verify that launching with an empty IndexedDB creates `LicensePlateGameDB` (v1) $\rightarrow$ `"events"` and immediately persists a `GameStarted` event for the default `Trip - MMM d, yyyy` session.
+  - **Gameplay & Reload Replay**: Verify that tapping plates (`PlateObserved`), deleting individual observations via long-press (`ObservationDeleted`), and editing game metadata (`GameUpdated`) survive full browser reloads with identical badge counts, progress counters, and metadata.
+  - **"New Game" Atomic Transition**: Verify that confirming "New Game" in `GameModal` atomically persists `[ GameEnded(oldGame.Id); GameStarted(newGame) ]` in a single IndexedDB `readwrite` transaction, resets the active board to `0 / 61` for `newGame`, preserves all historical events from `oldGame` in `"events"`, and reloads cleanly into `newGame`.
 
 ---
 
-### Phase 6: Add-on — Location Services & GPS Capture (`Location.fs`)
+### Phase 6: PWA, Service Worker & Offline Capability (`vite-plugin-pwa`)
 
-- [ ] **6.1. Explanation Banner & Permission Request**
+- [ ] **6.1. Generate Raster PWA Icons & Update HTML Shell (`public/icons/`, `index.html`)**
+  - Create `public/icons/` and generate `192x192` (`public/icons/icon-192.png`) and `512x512` (`public/icons/icon-512.png`) PNG icons rendered from `public/favicon.svg` (matching the Solarized Dark `#002b36` / `#073642` license plate motif with `#2aa198` cyan accents).
+  - Update `index.html` so `<link rel="apple-touch-icon" href="/icons/icon-192.png" />` points to the raster 192x192 PNG instead of `/favicon.svg` (required by iOS Safari for home-screen icons).
+- [ ] **6.2. Install & Configure `vite-plugin-pwa` (`package.json`, `vite.config.js`)**
+  - Add `vite-plugin-pwa` as a devDependency in `package.json` (`pnpm add -D vite-plugin-pwa`, adding `pnpm` peerDependency overrides if required for Vite 8).
+  - Configure `VitePWA` in `vite.config.js`:
+    - **Service Worker Registration**: `registerType: 'autoUpdate'` and `injectRegister: 'auto'` so Vite automatically injects `registerSW.js` into the built `index.html` without manual registration code in F#.
+    - **Included Static Assets**: `includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'css/styles.css']`.
+    - **Workbox Precache Configuration (`workbox`)**:
+      - `globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}']` to precache all content-hashed Fable/React bundles and static assets.
+      - `cleanupOutdatedCaches: true`, `clientsClaim: true`, `skipWaiting: true`, and `navigateFallback: 'index.html'` for reliable offline SPA navigation.
+    - **Web App Manifest (`manifest`)**:
+      - `name: 'The License Plate Game'`
+      - `short_name: 'Plate Game'`
+      - `description: 'Collect them all — a fast, touch-friendly, offline-first license plate game for road trips.'`
+      - `start_url: '/'`, `scope: '/'`, `display: 'standalone'`
+      - `theme_color: '#002b36'`, `background_color: '#002b36'` (matching `--color-bg-base` in `styles.css` and `<meta name="theme-color">`)
+      - `icons`: `/icons/icon-192.png` (`192x192`, `image/png`, `purpose: 'any maskable'`), `/icons/icon-512.png` (`512x512`, `image/png`, `purpose: 'any maskable'`), and `/favicon.svg` (`any`, `image/svg+xml`).
+- [ ] **6.3. Production Build & Working Offline Baseline Verification**
+  - Run `pnpm build` and confirm `dist/` emits `manifest.webmanifest`, `sw.js`, `workbox-*.js`, `registerSW.js`, `icons/icon-192.png`, `icons/icon-512.png`, and precached JS/CSS bundles cleanly.
+  - Serve the production bundle via `pnpm preview` and verify the complete working baseline:
+    - Service Worker registers, activates, and precaches all assets with zero console errors.
+    - Web App Manifest validates as installable (`display: standalone`, theme colors, and icons).
+    - With browser DevTools Network set to **Offline**, full page reloads and all core gameplay loops (tapping plates, searching, scope filtering, hiding observed states, long-press observation deletion, editing game info, and starting a new game) function 100% offline backed by IndexedDB.
+
+---
+
+### Phase 7: Add-on — Location Services & GPS Capture (`Location.fs`)
+
+- [ ] **7.1. Explanation Banner & Permission Request**
   - Display a non-intrusive explanation banner on first launch explaining GPS coordinate logging.
   - Request permission via `navigator.geolocation.getCurrentPosition()`.
-- [ ] **6.2. Background GPS Resolution via Elmish Cmd**
+- [ ] **7.2. Background GPS Resolution via Elmish Cmd**
   - On `PlateTapped`:
     - Emit `PlateObserved` immediately with `Latitude = None, Longitude = None`.
     - Dispatch a background `Cmd` to query GPS coordinates (with a 5000ms timeout).
     - When GPS resolves, dispatch `GpsCoordinatesAcquired(obsId, lat, lon)`, which emits and persists `ObservationLocationRecorded(obsId, lat, lon)` to attach coordinates to the observation.
   - Graceful fallback: observations remain valid if GPS is denied, timed out, or offline.
-
----
-
-### Phase 7: PWA, Service Worker & Offline Capability (`vite-plugin-pwa`)
-
-- [ ] **7.1. Install & Configure `vite-plugin-pwa`**
-  - Add `vite-plugin-pwa` as a devDependency in `package.json`.
-  - Configure `VitePWA` in `vite.config.js` with `registerType: 'autoUpdate'`, `injectRegister: 'auto'`, Workbox glob patterns (`**/*.{js,css,html,ico,png,svg}`), and Web App Manifest metadata (`name`, `short_name`, `display: "standalone"`, `theme_color`, `background_color`, icons).
-- [ ] **7.2. PWA Icons**
-  - Ensure 192x192 and 512x512 icons are present in `public/icons/` and linked in the manifest configuration.
 
 ---
 

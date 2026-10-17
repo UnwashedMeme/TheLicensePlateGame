@@ -10,7 +10,8 @@ module ObservationModal =
         (jurisdictionId: string)
         (observations: Observation list)
         (onDelete: Guid -> unit)
-        (onClose: unit -> unit) =
+        (onClose: unit -> unit)
+        =
         let jurisdictionOpt = Jurisdictions.tryFind jurisdictionId
 
         let title =

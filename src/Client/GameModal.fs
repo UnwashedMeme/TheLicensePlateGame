@@ -59,12 +59,7 @@ module GameModal =
 
             nextModel, Cmd.none
 
-    let private editGameModal
-        (game: Game)
-        (dispatch: Msg -> unit)
-        (onSave: unit -> unit)
-        (onCancel: unit -> unit)
-        =
+    let private editGameModal (game: Game) (dispatch: Msg -> unit) (onSave: unit -> unit) (onCancel: unit -> unit) =
         Html.div [
             prop.className "modal-backdrop"
             prop.onClick (fun _ -> onCancel ())
@@ -136,12 +131,7 @@ module GameModal =
             ]
         ]
 
-    let private newGameModal
-        (game: Game)
-        (dispatch: Msg -> unit)
-        (onSave: unit -> unit)
-        (onCancel: unit -> unit)
-        =
+    let private newGameModal (game: Game) (dispatch: Msg -> unit) (onSave: unit -> unit) (onCancel: unit -> unit) =
         Html.div [
             prop.className "modal-backdrop"
             prop.onClick (fun _ -> onCancel ())
@@ -219,12 +209,7 @@ module GameModal =
     /// Self-contained modal that owns its draft state via `React.useElmish`.
     /// Reports completion through callbacks, so the parent never sees draft keystrokes.
     [<ReactComponent>]
-    let Modal
-        (initial: Model)
-        (onSave: Game -> unit)
-        (onStartNew: Game -> unit)
-        (onCancel: unit -> unit)
-        =
+    let Modal (initial: Model) (onSave: Game -> unit) (onStartNew: Game -> unit) (onCancel: unit -> unit) =
         let model, dispatch = React.useElmish ((fun () -> init initial), update, [||])
 
         match model with

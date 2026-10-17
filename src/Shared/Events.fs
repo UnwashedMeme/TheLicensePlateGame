@@ -45,7 +45,10 @@ module Events =
     /// unknown games/observations are ignored so replaying a partial log never throws.
     let apply (state: EventState) (stamped: StampedGameEvent) : EventState =
         match stamped.Event with
-        | PlateObserved obs -> { state with Observations = obs :: state.Observations }
+        | PlateObserved obs -> {
+            state with
+                Observations = obs :: state.Observations
+          }
 
         | ObservationDeleted obsId -> {
             state with
@@ -67,7 +70,10 @@ module Events =
                             o)
           }
 
-        | GameStarted game -> { state with Games = Map.add game.Id game state.Games }
+        | GameStarted game -> {
+            state with
+                Games = Map.add game.Id game state.Games
+          }
 
         | GameUpdated updated ->
             match Map.tryFind updated.Id state.Games with
@@ -78,7 +84,10 @@ module Events =
                         Name = updated.Name
                         Notes = updated.Notes
                 }
-                { state with Games = Map.add merged.Id merged state.Games }
+                {
+                    state with
+                        Games = Map.add merged.Id merged state.Games
+                }
             | None -> state
 
         | GameEnded gameId ->
@@ -88,7 +97,10 @@ module Events =
                     game with
                         Status = Completed stamped.Timestamp
                 }
-                { state with Games = Map.add gameId ended state.Games }
+                {
+                    state with
+                        Games = Map.add gameId ended state.Games
+                }
             | _ -> state
 
     /// Fold a sequence of events (in the given order) into a state.
