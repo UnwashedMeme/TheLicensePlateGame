@@ -101,25 +101,38 @@ pnpm -v   # Should report v12.x
 
 ---
 
-## 4. Fable .NET Tool
+## 4. .NET Local Tools (Fable & Fantomas)
 
-We use **Fable 5** (v5.19+) to compile F# to modern JavaScript ES modules.
+We use **Fable 5** to compile F# to modern JavaScript ES modules (with source maps) and **Fantomas 8** for F# code formatting. Both are pinned in [`.config/dotnet-tools.json`](file:///home/nathan/projects/TheLicensePlateGame/.config/dotnet-tools.json).
 
 In the project root directory:
 
 ```bash
-# Initialize a local dotnet tool manifest if not already present
-dotnet new tool-manifest
+# Restore tools from .config/dotnet-tools.json (recommended when cloning)
+dotnet tool restore
 
-# Install Fable locally in the repository (installs latest Fable 5.x)
+# Or, if initializing from scratch:
+dotnet new tool-manifest
 dotnet tool install fable
+dotnet tool install fantomas
 ```
 
-### Verify Fable Installation
+### Verify Tool Installations
 
 ```bash
 dotnet tool run fable --version
+dotnet tool run fantomas --version
 ```
+
+### Tooling Architecture Notes
+
+* **Why `dotnet fable` CLI (with `-s -o .fable-build`) vs. `vite-plugin-fable`?**
+  We currently run `dotnet fable` outputting to an out-of-source `.fable-build/` directory with source maps enabled (`-s`). We may re-evaluate [`vite-plugin-fable`](https://github.com/fable-compiler/vite-plugin-fable) in the future:
+  * **`vite-plugin-fable` Pros**: Single-process Vite workflow (`vite` / `vite build`); compiles `.fs` files on-demand in memory via a background JSON-RPC daemon with zero intermediate `.js` files on disk.
+  * **`vite-plugin-fable` Cons**: Bundles its own prebuilt .NET daemon linked against a specific `Fable.Compiler` version inside the npm package (making it non-trivial to bump Fable independently for compiler bug fixes), and the repository is currently seeking a new maintainer.
+  * **`dotnet fable -s -o .fable-build` Pros**: Gives us full `.fs` source maps in browser DevTools, keeps `src/` 100% free of generated `.fs.js` clutter, lets us inspect emitted JS in `.fable-build/` if ever needed, and lets us bump Fable versions immediately in `.config/dotnet-tools.json`.
+* **Why we don't use `Femto`**:
+  `Femto` inspects `<NpmDependencies>` metadata inside Fable NuGet packages to sync npm packages. Because our Fable dependencies bind to native browser APIs (`Fable.Browser.*`), pure F# (`Fable.Elmish`, `Thoth.Json`), or React (`Feliz`, `Feliz.UseElmish`), and many NuGet packages lag on updating their internal peer-dependency ceilings for **React 19** and **Vite 8**, `Femto` is unnecessary here and can trigger false-positive downgrade warnings.
 
 ---
 
@@ -129,10 +142,11 @@ Run this single snippet to verify that everything is ready:
 
 ```bash
 echo "=== Environment Check ==="
-echo "Dotnet: $(dotnet --version 2>/dev/null || echo 'NOT FOUND')"
-echo "Node:   $(node -v 2>/dev/null || echo 'NOT FOUND')"
-echo "pnpm:   $(pnpm -v 2>/dev/null || echo 'NOT FOUND')"
-echo "Fable:  $(dotnet tool run fable --version 2>/dev/null || echo 'NOT INSTALLED')"
+echo "Dotnet:   $(dotnet --version 2>/dev/null || echo 'NOT FOUND')"
+echo "Node:     $(node -v 2>/dev/null || echo 'NOT FOUND')"
+echo "pnpm:     $(pnpm -v 2>/dev/null || echo 'NOT FOUND')"
+echo "Fable:    $(dotnet tool run fable --version 2>/dev/null || echo 'NOT INSTALLED')"
+echo "Fantomas: $(dotnet tool run fantomas --version 2>/dev/null || echo 'NOT INSTALLED')"
 echo "========================="
 ```
 
@@ -140,25 +154,27 @@ echo "========================="
 
 ## 6. Developer Workflow Commands
 
-Once dependencies are installed, use the following `pnpm` scripts:
+Once dependencies are installed (`dotnet tool restore && pnpm install`), use the following `pnpm` scripts:
 
 ```bash
-# Install dependencies using pnpm
+# Install JS dependencies using pnpm
 pnpm install
 
-# Start development server with live reload (Fable watch + Vite dev server)
+# Start development server with live reload & source maps (Fable watch -> .fable-build/ + Vite dev server)
 pnpm dev
 
-# Build the complete production bundle (dotnet build + Fable compile + Vite bundle into dist/)
+# Build the complete production bundle (dotnet build + Fable compile + Vite PWA bundle into dist/)
 pnpm build
 
-# Preview the production bundle locally
+# Preview the production PWA bundle locally
 pnpm preview
 
-# Run tests (placeholder until test project is scaffolded)
+# Run the Expecto test suite on .NET 10 (Shared domain, event-sourcing, search, and Elmish state tests)
 pnpm test
 
-# Clean build artifacts (dist, bin, obj, fable_modules, and generated .fs.js files)
+# Format F# source files with Fantomas
+pnpm format
+
+# Clean build artifacts (dist, .fable-build, bin, and obj)
 pnpm clean
 ```
-
